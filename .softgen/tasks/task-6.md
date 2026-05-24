@@ -1,33 +1,39 @@
 ---
 title: Admin Dashboard & System Configuration
-status: todo
+status: in_progress
 priority: urgent
 type: feature
 tags:
   - admin
-  - config
-  - api-keys
+  - configuration
+  - super-admin
 created_by: agent
 created_at: 2026-05-24
 position: 6
 ---
 ## Notes
-Admin-only dashboard for Janto to configure Claude API keys, upload custom background photos, set PIN for sensitive data access, toggle per-pax billing, manage member accounts, approve thread requests, and configure trip budget allocation.
+Super Admin dashboard accessible only to coach.janto@gmail.com for system-wide configuration including API keys, security settings, member management, budget allocation, and appearance customization. Separate from regular member settings.
 
 ## Checklist
-- [ ] Create admin dashboard page (`/admin`) accessible only to Janto's account
-- [ ] Add Claude API key input field with model selector (Claude 3.5 Sonnet, Claude 3 Opus, etc.) and test connection button
-- [ ] Build background photo upload interface with preview (saves to Google Drive, displays across all pages)
-- [ ] Create PIN setup for sensitive data (4-6 digit, separate from login password, stored securely in Supabase)
-- [ ] Add toggle for "Enable per-pax billing" feature (affects expense report calculations)
-- [ ] Build member management panel: view all 4 members, change roles (Admin/Member), reset passwords
-- [ ] Create thread approval queue showing pending thread requests with approve/reject buttons
-- [ ] Add budget configuration interface: set total trip budget in JPY, allocate per member, set category limits (Meals/Transport/Tickets/Souvenir)
-- [ ] Display current API usage stats (Claude API calls, storage used, active threads)
-- [ ] Add "Export all data" button (downloads complete trip data as JSON backup)
+- [x] Create admin page route /admin with access control (only coach.janto@gmail.com)
+- [x] Update users table with email field and super_admin boolean flag
+- [x] Build tabbed interface with 6 sections: API Keys, Security, Budget, Members, Appearance, Notifications
+- [x] API Keys tab: input fields for Claude API key and Google Drive API credentials with save functionality
+- [x] Security tab: set 6-digit PIN for sensitive data protection (separate from login password)
+- [x] Budget tab: input for total trip budget in JPY, toggle for per-pax billing mode
+- [x] Members tab: display all 4 family members with email, role badges (Super Admin/Member), and status
+- [ ] Implement actual save functionality to Supabase admin_settings table
+- [ ] Add member add/remove/role change functionality
+- [ ] Build thread approval queue showing pending thread requests from members
+- [ ] Create thread approval action buttons (approve → creates thread, reject → sends reason message)
+- [ ] Appearance tab: background image upload to Supabase Storage with live preview
+- [ ] Add budget allocation per member with individual limits
+- [ ] Create notification preferences panel for push notifications and reminders
 
 ## Acceptance
-- Janto can access `/admin` after login; other members see 403 Forbidden
-- Claude API key saved and working (validated via test call)
-- Custom background photo uploads and displays site-wide
+- Admin page only accessible to coach.janto@gmail.com
+- API keys save successfully and encrypt sensitive data
+- PIN protection works for passport/booking data access
+- Per-pax billing toggle affects financial report calculations
+- Background upload works and photo displays site-wide
 - PIN successfully protects passport/booking data access
