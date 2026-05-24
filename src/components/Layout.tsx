@@ -1,0 +1,41 @@
+import React from "react";
+
+interface LayoutProps {
+  children: React.ReactNode;
+}
+
+export function Layout({ children }: LayoutProps) {
+  return (
+    <div className="relative min-h-screen w-full overflow-hidden">
+      {/* Animated gradient mesh background */}
+      <div className="fixed inset-0 gradient-mesh dot-grid" />
+      
+      {/* Torii gate silhouette */}
+      <svg
+        className="torii-gate"
+        viewBox="0 0 400 400"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M50 100 L50 120 L350 120 L350 100 M50 100 Q50 80, 70 80 L330 80 Q350 80, 350 100 M70 120 L70 300 M330 120 L330 300 M60 180 L340 180 M60 180 Q60 170, 70 170 L330 170 Q340 170, 340 180"
+          stroke="currentColor"
+          strokeWidth="4"
+          className="text-primary"
+        />
+      </svg>
+      
+      {/* Sakura petals */}
+      <div className="sakura-petal" />
+      <div className="sakura-petal" />
+      <div className="sakura-petal" />
+      <div className="sakura-petal" />
+      <div className="sakura-petal" />
+      
+      {/* Content */}
+      <div className="relative z-10">
+        {children}
+      </div>
+    </div>
+  );
+}
