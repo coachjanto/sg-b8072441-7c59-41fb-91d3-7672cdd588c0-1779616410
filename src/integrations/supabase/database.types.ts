@@ -15,6 +15,67 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_settings: {
+        Row: {
+          id: string
+          setting_key: string
+          setting_value: string | null
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          id?: string
+          setting_key: string
+          setting_value?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          id?: string
+          setting_key?: string
+          setting_value?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_settings_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      budget_allocation: {
+        Row: {
+          allocated_amount_jpy: number | null
+          created_at: string | null
+          id: string
+          user_id: string | null
+        }
+        Insert: {
+          allocated_amount_jpy?: number | null
+          created_at?: string | null
+          id?: string
+          user_id?: string | null
+        }
+        Update: {
+          allocated_amount_jpy?: number | null
+          created_at?: string | null
+          id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "budget_allocation_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           content: string
@@ -161,31 +222,37 @@ export type Database = {
         Row: {
           avatar_url: string | null
           created_at: string | null
+          email: string | null
           has_completed_onboarding: boolean | null
           id: string
           name: string
           password_hash: string
           role: string
+          super_admin: boolean | null
           updated_at: string | null
         }
         Insert: {
           avatar_url?: string | null
           created_at?: string | null
+          email?: string | null
           has_completed_onboarding?: boolean | null
           id?: string
           name: string
           password_hash: string
           role: string
+          super_admin?: boolean | null
           updated_at?: string | null
         }
         Update: {
           avatar_url?: string | null
           created_at?: string | null
+          email?: string | null
           has_completed_onboarding?: boolean | null
           id?: string
           name?: string
           password_hash?: string
           role?: string
+          super_admin?: boolean | null
           updated_at?: string | null
         }
         Relationships: []

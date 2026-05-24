@@ -20,6 +20,7 @@ export default function Home() {
   const [currentUser, setCurrentUser] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState("");
+  const [activeTab, setActiveTab] = useState("chat");
 
   const handleLogin = (username: string) => {
     setCurrentUser(username);
