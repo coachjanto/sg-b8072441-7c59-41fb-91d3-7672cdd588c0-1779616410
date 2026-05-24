@@ -1,6 +1,6 @@
 ---
 title: Authentication and First-time Onboarding
-status: in_progress
+status: done
 priority: urgent
 type: feature
 tags:
@@ -17,3 +17,8 @@ Sets up the Glassmorphism Modern Japanese design system and handles the login fl
 - [x] Build the login screen featuring a glass card, app logo, and a dropdown to select the user (Janto, Yina, Pauline, Clement) with a password field and a "Masuk ke Trip HQ" button.
 - [x] Create the full-screen onboarding welcome message from Claudia Yang for first-time logins detailing her capabilities (itinerary, budget meals, content ideas, etc.).
 - [x] Create the return-login greeting ("Ohayou, [Nama]! 🌸 Ada yang bisa saya bantu hari ini?").
+
+## Acceptance
+- Login screen displays with glassmorphism aesthetic in both light and dark themes
+- Theme toggle works and persists across page refreshes
+- Claudia Yang's welcome message appears after login with all listed capabilities
