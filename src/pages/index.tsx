@@ -165,27 +165,57 @@ export default function Home() {
           </div>
 
           {/* Bottom Nav */}
-          <div className="glass-card mx-4 mb-4 p-2 rounded-2xl flex justify-around items-center">
-            <Button variant="ghost" size="sm" className="flex-col gap-1 h-auto py-2 text-primary font-semibold min-w-[48px]">
-              <span className="text-lg">💬</span>
-              <span className="text-xs">Chat</span>
+          <div className="glass-card mx-4 mb-4 p-2 rounded-2xl flex justify-around">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className={`flex-1 ${activeTab === 'chat' ? 'text-primary' : ''}`}
+              onClick={() => setActiveTab('chat')}
+            >
+              💬 <span className="ml-1 hidden sm:inline">Chat</span>
             </Button>
-            <Button variant="ghost" size="sm" className="flex-col gap-1 h-auto py-2 text-muted-foreground min-w-[48px]">
-              <span className="text-lg">📄</span>
-              <span className="text-xs">Docs</span>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className={`flex-1 ${activeTab === 'docs' ? 'text-primary' : ''}`}
+              onClick={() => setActiveTab('docs')}
+            >
+              📄 <span className="ml-1 hidden sm:inline">Docs</span>
             </Button>
-            <Button variant="ghost" size="sm" className="flex-col gap-1 h-auto py-2 text-muted-foreground min-w-[48px]">
-              <span className="text-lg">💰</span>
-              <span className="text-xs">Expense</span>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className={`flex-1 ${activeTab === 'expense' ? 'text-primary' : ''}`}
+              onClick={() => setActiveTab('expense')}
+            >
+              💰 <span className="ml-1 hidden sm:inline">Expense</span>
             </Button>
-            <Button variant="ghost" size="sm" className="flex-col gap-1 h-auto py-2 text-muted-foreground min-w-[48px]">
-              <span className="text-lg">🎁</span>
-              <span className="text-xs">Souvenir</span>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className={`flex-1 ${activeTab === 'souvenir' ? 'text-primary' : ''}`}
+              onClick={() => setActiveTab('souvenir')}
+            >
+              🎁 <span className="ml-1 hidden sm:inline">Souvenir</span>
             </Button>
-            <Button variant="ghost" size="sm" className="flex-col gap-1 h-auto py-2 text-muted-foreground min-w-[48px]">
-              <span className="text-lg">📸</span>
-              <span className="text-xs">Gallery</span>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className={`flex-1 ${activeTab === 'gallery' ? 'text-primary' : ''}`}
+              onClick={() => setActiveTab('gallery')}
+            >
+              📸 <span className="ml-1 hidden sm:inline">Gallery</span>
             </Button>
+            {currentUser === 'Janto' && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="flex-1"
+                onClick={() => window.location.href = '/admin'}
+              >
+                ⚙️ <span className="ml-1 hidden sm:inline">Admin</span>
+              </Button>
+            )}
           </div>
         </div>
       </Layout>
