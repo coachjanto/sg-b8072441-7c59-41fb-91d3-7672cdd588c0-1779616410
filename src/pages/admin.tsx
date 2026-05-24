@@ -4,146 +4,286 @@ import { SEO } from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Settings, Key, Lock, Users, DollarSign, Image, Bell } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
+import { 
+  Key, 
+  Lock, 
+  DollarSign, 
+  Users, 
+  Image as ImageIcon, 
+  Bell,
+  Save,
+  Upload,
+  Eye,
+  EyeOff,
+  Shield,
+  ArrowLeft,
+  Edit,
+  Trash2,
+  UserPlus
+} from "lucide-react";
+import { useRouter } from "next/router";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+interface Member {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  isActive: boolean;
+}
 
 export default function AdminPage() {
-  const { toast } = useToast();
+  const router = useRouter();
   const [claudeApiKey, setClaudeApiKey] = useState("");
+  const [showClaudeKey, setShowClaudeKey] = useState(false);
   const [googleDriveKey, setGoogleDriveKey] = useState("");
-  const [sensitiveDataPin, setSensitiveDataPin] = useState("");
-  const [perPaxBilling, setPerPaxBilling] = useState(false);
+  const [showGoogleKey, setShowGoogleKey] = useState(false);
+  const [securityPin, setSecurityPin] = useState("");
+  const [confirmPin, setConfirmPin] = useState("");
   const [totalBudget, setTotalBudget] = useState("");
+  const [perPaxBilling, setPerPaxBilling] = useState(false);
   const [backgroundImage, setBackgroundImage] = useState<File | null>(null);
+  const [backgroundPreview, setBackgroundPreview] = useState("");
+  
+  const [members, setMembers] = useState<Member[]>([
+    { id: '1', name: 'Janto Djojo', email: 'coach.janto@gmail.com', role: 'Super Admin', isActive: true },
+    { id: '2', name: 'Yina Djojo', email: 'yina@gmail.com', role: 'Member', isActive: true },
+    { id: '3', name: 'Pauline Djojo', email: 'pauline@gmail.com', role: 'Member', isActive: true },
+    { id: '4', name: 'Clement Djojo', email: 'clement@gmail.com', role: 'Member', isActive: true },
+  ]);
+  
+  const [editingMember, setEditingMember] = useState<Member | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [newMemberName, setNewMemberName] = useState("");
+  const [newMemberEmail, setNewMemberEmail] = useState("");
+  const [newMemberRole, setNewMemberRole] = useState("Member");
 
-  // Mock current user - replace with actual auth
-  const currentUser = { username: "janto", email: "coach.janto@gmail.com", isSuperAdmin: true };
-
-  if (!currentUser.isSuperAdmin) {
-    return (
-      <Layout>
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="glass-card p-8 rounded-2xl max-w-md text-center">
-            <Lock className="h-16 w-16 mx-auto mb-4 text-destructive" />
-            <h2 className="text-2xl font-serif font-bold mb-2">Access Denied</h2>
-            <p className="text-muted-foreground">
-              Only Super Admin (coach.janto@gmail.com) can access this page.
-            </p>
-          </div>
-        </div>
-      </Layout>
-    );
-  }
+  const handleBackgroundUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setBackgroundImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setBackgroundPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleSaveApiKeys = () => {
     // TODO: Save to Supabase admin_settings
-    toast({
-      title: "✅ API Keys Saved",
-      description: "Configuration has been updated successfully.",
-    });
+    alert("API Keys saved successfully!");
   };
 
   const handleSavePin = () => {
-    // TODO: Hash and save PIN to Supabase
-    toast({
-      title: "✅ PIN Updated",
-      description: "Sensitive data PIN has been set.",
-    });
+    if (securityPin !== confirmPin) {
+      alert("PIN tidak sama!");
+      return;
+    }
+    if (securityPin.length !== 6) {
+      alert("PIN harus 6 digit!");
+      return;
+    }
+    // TODO: Save to Supabase
+    alert("PIN berhasil disimpan!");
   };
 
   const handleSaveBudget = () => {
-    // TODO: Save budget settings to Supabase
-    toast({
-      title: "✅ Budget Configuration Saved",
-      description: `Total budget set to ¥${totalBudget}`,
-    });
+    // TODO: Save to Supabase
+    alert("Budget settings saved!");
   };
 
-  const handleUploadBackground = () => {
-    if (!backgroundImage) return;
-    // TODO: Upload to Supabase Storage
-    toast({
-      title: "✅ Background Uploaded",
-      description: "New background image has been set.",
-    });
+  const handleEditMember = (member: Member) => {
+    setEditingMember({ ...member });
+    setIsEditDialogOpen(true);
+  };
+
+  const handleUpdateMember = () => {
+    if (!editingMember) return;
+    
+    setMembers(members.map(m => 
+      m.id === editingMember.id ? editingMember : m
+    ));
+    
+    // TODO: Update to Supabase
+    setIsEditDialogOpen(false);
+    alert("Member profile updated successfully!");
+  };
+
+  const handleAddMember = () => {
+    if (!newMemberName || !newMemberEmail) {
+      alert("Nama dan email harus diisi!");
+      return;
+    }
+
+    const newMember: Member = {
+      id: Date.now().toString(),
+      name: newMemberName,
+      email: newMemberEmail,
+      role: newMemberRole,
+      isActive: true
+    };
+
+    setMembers([...members, newMember]);
+    
+    // TODO: Save to Supabase
+    setIsAddDialogOpen(false);
+    setNewMemberName("");
+    setNewMemberEmail("");
+    setNewMemberRole("Member");
+    alert("Member baru berhasil ditambahkan!");
+  };
+
+  const handleDeleteMember = (memberId: string) => {
+    if (confirm("Yakin ingin menghapus member ini?")) {
+      setMembers(members.filter(m => m.id !== memberId));
+      // TODO: Delete from Supabase
+      alert("Member berhasil dihapus!");
+    }
+  };
+
+  const handleToggleActive = (memberId: string) => {
+    setMembers(members.map(m => 
+      m.id === memberId ? { ...m, isActive: !m.isActive } : m
+    ));
+    // TODO: Update Supabase
   };
 
   return (
     <>
       <SEO title="Admin Dashboard - Japan2026 Trip" />
       <Layout>
-        <div className="container max-w-6xl mx-auto p-6 space-y-6">
+        <div className="min-h-screen p-4 max-w-6xl mx-auto pb-20">
           {/* Header */}
-          <div className="glass-card p-6 rounded-2xl">
-            <div className="flex items-center gap-3 mb-2">
-              <Settings className="h-8 w-8 text-primary" />
-              <h1 className="text-3xl font-serif font-bold text-primary">
-                Super Admin Dashboard
-              </h1>
+          <div className="glass-card p-6 rounded-2xl mb-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => router.push('/')}
+                  className="glass-card-hover"
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                </Button>
+                <div>
+                  <h1 className="text-3xl font-serif font-bold text-primary">Super Admin Dashboard</h1>
+                  <p className="text-muted-foreground">System Configuration & Management</p>
+                </div>
+              </div>
+              <Badge variant="outline" className="bg-primary/20 text-primary border-primary">
+                <Shield className="h-4 w-4 mr-1" />
+                Super Admin
+              </Badge>
             </div>
-            <p className="text-muted-foreground">
-              Logged in as: <span className="text-primary font-semibold">{currentUser.email}</span>
-            </p>
           </div>
 
           {/* Tabs */}
-          <Tabs defaultValue="api" className="w-full">
-            <TabsList className="glass-card w-full justify-start overflow-x-auto">
-              <TabsTrigger value="api">🔑 API Keys</TabsTrigger>
-              <TabsTrigger value="security">🔒 Security</TabsTrigger>
-              <TabsTrigger value="budget">💰 Budget</TabsTrigger>
-              <TabsTrigger value="members">👥 Members</TabsTrigger>
-              <TabsTrigger value="appearance">🎨 Appearance</TabsTrigger>
-              <TabsTrigger value="notifications">🔔 Notifications</TabsTrigger>
+          <Tabs defaultValue="api-keys" className="space-y-6">
+            <TabsList className="glass-card p-1 rounded-xl grid grid-cols-3 md:grid-cols-6 gap-1">
+              <TabsTrigger value="api-keys" className="text-xs md:text-sm">
+                <Key className="h-4 w-4 mr-1" /> API Keys
+              </TabsTrigger>
+              <TabsTrigger value="security" className="text-xs md:text-sm">
+                <Lock className="h-4 w-4 mr-1" /> Security
+              </TabsTrigger>
+              <TabsTrigger value="budget" className="text-xs md:text-sm">
+                <DollarSign className="h-4 w-4 mr-1" /> Budget
+              </TabsTrigger>
+              <TabsTrigger value="members" className="text-xs md:text-sm">
+                <Users className="h-4 w-4 mr-1" /> Members
+              </TabsTrigger>
+              <TabsTrigger value="appearance" className="text-xs md:text-sm">
+                <ImageIcon className="h-4 w-4 mr-1" /> Appearance
+              </TabsTrigger>
+              <TabsTrigger value="notifications" className="text-xs md:text-sm">
+                <Bell className="h-4 w-4 mr-1" /> Notifications
+              </TabsTrigger>
             </TabsList>
 
             {/* API Keys Tab */}
-            <TabsContent value="api" className="space-y-4">
-              <Card className="glass-card border-0">
+            <TabsContent value="api-keys">
+              <Card className="glass-card border-border/50">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Key className="h-5 w-5" />
-                    API Configuration
-                  </CardTitle>
-                  <CardDescription>
-                    Configure external service API keys for Claude AI and Google Drive integration.
-                  </CardDescription>
+                  <CardTitle className="text-primary">API Configuration</CardTitle>
+                  <CardDescription>Manage external service API keys</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-6">
                   <div className="space-y-2">
-                    <Label htmlFor="claude-api">Claude API Key</Label>
-                    <Input
-                      id="claude-api"
-                      type="password"
-                      placeholder="sk-ant-..."
-                      value={claudeApiKey}
-                      onChange={(e) => setClaudeApiKey(e.target.value)}
-                      className="font-mono"
-                    />
+                    <Label htmlFor="claude-key">Claude API Key</Label>
+                    <div className="relative">
+                      <Input
+                        id="claude-key"
+                        type={showClaudeKey ? "text" : "password"}
+                        value={claudeApiKey}
+                        onChange={(e) => setClaudeApiKey(e.target.value)}
+                        placeholder="sk-ant-..."
+                        className="pr-10 bg-background/50"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="absolute right-0 top-0"
+                        onClick={() => setShowClaudeKey(!showClaudeKey)}
+                      >
+                        {showClaudeKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </Button>
+                    </div>
                     <p className="text-xs text-muted-foreground">
-                      Get your API key from <a href="https://console.anthropic.com" target="_blank" className="text-primary hover:underline">console.anthropic.com</a>
+                      Required for Claudia Yang AI consultant to function
                     </p>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="google-drive-api">Google Drive API Key</Label>
-                    <Input
-                      id="google-drive-api"
-                      type="password"
-                      placeholder="AIza..."
-                      value={googleDriveKey}
-                      onChange={(e) => setGoogleDriveKey(e.target.value)}
-                      className="font-mono"
-                    />
+                    <Label htmlFor="gdrive-key">Google Drive API Key</Label>
+                    <div className="relative">
+                      <Input
+                        id="gdrive-key"
+                        type={showGoogleKey ? "text" : "password"}
+                        value={googleDriveKey}
+                        onChange={(e) => setGoogleDriveKey(e.target.value)}
+                        placeholder="AIza..."
+                        className="pr-10 bg-background/50"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="absolute right-0 top-0"
+                        onClick={() => setShowGoogleKey(!showGoogleKey)}
+                      >
+                        {showGoogleKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </Button>
+                    </div>
                     <p className="text-xs text-muted-foreground">
-                      Enable Drive API in Google Cloud Console and create credentials
+                      For photo/document storage and gallery integration
                     </p>
                   </div>
 
-                  <Button onClick={handleSaveApiKeys} className="ripple-effect">
+                  <Button onClick={handleSaveApiKeys} className="w-full ripple-effect">
+                    <Save className="h-4 w-4 mr-2" />
                     Save API Keys
                   </Button>
                 </CardContent>
@@ -151,83 +291,89 @@ export default function AdminPage() {
             </TabsContent>
 
             {/* Security Tab */}
-            <TabsContent value="security" className="space-y-4">
-              <Card className="glass-card border-0">
+            <TabsContent value="security">
+              <Card className="glass-card border-border/50">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Lock className="h-5 w-5" />
-                    Sensitive Data Protection
-                  </CardTitle>
-                  <CardDescription>
-                    Set a PIN to protect passport numbers, booking codes, and other sensitive information.
-                  </CardDescription>
+                  <CardTitle className="text-primary">Security Settings</CardTitle>
+                  <CardDescription>Set PIN for sensitive data protection</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-6">
                   <div className="space-y-2">
-                    <Label htmlFor="pin">6-Digit PIN</Label>
+                    <Label htmlFor="pin">Security PIN (6 digits)</Label>
                     <Input
                       id="pin"
                       type="password"
+                      value={securityPin}
+                      onChange={(e) => setSecurityPin(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                      placeholder="******"
                       maxLength={6}
-                      placeholder="••••••"
-                      value={sensitiveDataPin}
-                      onChange={(e) => setSensitiveDataPin(e.target.value.replace(/\D/g, ''))}
-                      className="font-mono text-center text-2xl tracking-widest"
+                      className="bg-background/50 font-mono text-lg tracking-widest"
                     />
                     <p className="text-xs text-muted-foreground">
-                      This PIN will be required to view passport numbers, booking codes, and other sensitive trip data.
+                      This PIN will protect passport numbers, booking codes, and other sensitive data
                     </p>
                   </div>
 
-                  <Button onClick={handleSavePin} className="ripple-effect" disabled={sensitiveDataPin.length !== 6}>
-                    Set PIN
+                  <div className="space-y-2">
+                    <Label htmlFor="confirm-pin">Confirm PIN</Label>
+                    <Input
+                      id="confirm-pin"
+                      type="password"
+                      value={confirmPin}
+                      onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                      placeholder="******"
+                      maxLength={6}
+                      className="bg-background/50 font-mono text-lg tracking-widest"
+                    />
+                  </div>
+
+                  <Button onClick={handleSavePin} className="w-full ripple-effect">
+                    <Lock className="h-4 w-4 mr-2" />
+                    Set Security PIN
                   </Button>
                 </CardContent>
               </Card>
             </TabsContent>
 
             {/* Budget Tab */}
-            <TabsContent value="budget" className="space-y-4">
-              <Card className="glass-card border-0">
+            <TabsContent value="budget">
+              <Card className="glass-card border-border/50">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <DollarSign className="h-5 w-5" />
-                    Budget Configuration
-                  </CardTitle>
-                  <CardDescription>
-                    Set total trip budget and enable per-person billing calculations.
-                  </CardDescription>
+                  <CardTitle className="text-primary">Budget Configuration</CardTitle>
+                  <CardDescription>Set total budget and billing preferences</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-6">
                   <div className="space-y-2">
-                    <Label htmlFor="total-budget">Total Budget (JPY)</Label>
+                    <Label htmlFor="budget">Total Trip Budget (JPY)</Label>
                     <Input
-                      id="total-budget"
+                      id="budget"
                       type="number"
-                      placeholder="5000000"
                       value={totalBudget}
                       onChange={(e) => setTotalBudget(e.target.value)}
-                      className="font-mono"
+                      placeholder="500000"
+                      className="bg-background/50 font-mono"
                     />
+                    <p className="text-xs text-muted-foreground">
+                      Total planned budget in Japanese Yen
+                    </p>
                   </div>
 
-                  <div className="flex items-center justify-between p-4 glass-card rounded-lg">
-                    <div>
-                      <Label htmlFor="per-pax-billing" className="font-semibold">
-                        Enable Per-Pax Billing
-                      </Label>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Calculate and split expenses equally among all trip members
+                  <div className="flex items-center justify-between glass-card p-4 rounded-xl">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="per-pax">Per-Pax Billing Mode</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Calculate individual expenses and generate billing per member
                       </p>
                     </div>
                     <Switch
-                      id="per-pax-billing"
+                      id="per-pax"
                       checked={perPaxBilling}
                       onCheckedChange={setPerPaxBilling}
                     />
                   </div>
 
-                  <Button onClick={handleSaveBudget} className="ripple-effect">
+                  <Button onClick={handleSaveBudget} className="w-full ripple-effect">
+                    <Save className="h-4 w-4 mr-2" />
                     Save Budget Settings
                   </Button>
                 </CardContent>
@@ -235,93 +381,253 @@ export default function AdminPage() {
             </TabsContent>
 
             {/* Members Tab */}
-            <TabsContent value="members" className="space-y-4">
-              <Card className="glass-card border-0">
+            <TabsContent value="members">
+              <Card className="glass-card border-border/50">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Users className="h-5 w-5" />
-                    Member Management
-                  </CardTitle>
-                  <CardDescription>
-                    Manage trip members, roles, and permissions.
-                  </CardDescription>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="text-primary">Member Management</CardTitle>
+                      <CardDescription>Manage family member profiles and roles</CardDescription>
+                    </div>
+                    <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" size="sm" className="glass-card-hover">
+                          <UserPlus className="h-4 w-4 mr-2" />
+                          Add Member
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="glass-card">
+                        <DialogHeader>
+                          <DialogTitle className="text-primary">Add New Member</DialogTitle>
+                          <DialogDescription>
+                            Add a new family member to the trip
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4 py-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="new-name">Full Name</Label>
+                            <Input
+                              id="new-name"
+                              value={newMemberName}
+                              onChange={(e) => setNewMemberName(e.target.value)}
+                              placeholder="Enter full name"
+                              className="bg-background/50"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="new-email">Email Address</Label>
+                            <Input
+                              id="new-email"
+                              type="email"
+                              value={newMemberEmail}
+                              onChange={(e) => setNewMemberEmail(e.target.value)}
+                              placeholder="email@example.com"
+                              className="bg-background/50"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="new-role">Role</Label>
+                            <Select value={newMemberRole} onValueChange={setNewMemberRole}>
+                              <SelectTrigger className="bg-background/50">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent className="glass-card">
+                                <SelectItem value="Member">Member</SelectItem>
+                                <SelectItem value="Super Admin">Super Admin</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                        <DialogFooter>
+                          <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                            Cancel
+                          </Button>
+                          <Button onClick={handleAddMember} className="ripple-effect">
+                            Add Member
+                          </Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {[
-                      { name: "Janto", email: "coach.janto@gmail.com", role: "Super Admin" },
-                      { name: "Yina", email: "yina.djojo@gmail.com", role: "Member" },
-                      { name: "Pauline", email: "pauline.djojo@gmail.com", role: "Member" },
-                      { name: "Clement", email: "clement.djojo@gmail.com", role: "Member" },
-                    ].map((member) => (
-                      <div key={member.email} className="flex items-center justify-between p-4 glass-card rounded-lg">
-                        <div>
-                          <p className="font-semibold">{member.name}</p>
+                <CardContent className="space-y-4">
+                  {members.map((member) => (
+                    <div key={member.id} className="glass-card p-4 rounded-xl space-y-3">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h3 className="font-semibold text-foreground">{member.name}</h3>
+                            <Badge 
+                              variant={member.role === 'Super Admin' ? 'default' : 'secondary'}
+                              className={member.role === 'Super Admin' ? 'bg-primary/20 text-primary border-primary' : ''}
+                            >
+                              {member.role}
+                            </Badge>
+                            {!member.isActive && (
+                              <Badge variant="outline" className="border-destructive text-destructive">
+                                Inactive
+                              </Badge>
+                            )}
+                          </div>
                           <p className="text-sm text-muted-foreground">{member.email}</p>
                         </div>
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                          member.role === "Super Admin" 
-                            ? "bg-primary/20 text-primary" 
-                            : "bg-muted text-muted-foreground"
-                        }`}>
-                          {member.role}
-                        </span>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleEditMember(member)}
+                            className="glass-card-hover"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          {member.role !== 'Super Admin' && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleDeleteMember(member.id)}
+                              className="glass-card-hover text-destructive hover:text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
                       </div>
-                    ))}
-                  </div>
+                      
+                      <div className="flex items-center justify-between pt-2 border-t border-border/50">
+                        <span className="text-sm text-muted-foreground">Active Status</span>
+                        <Switch
+                          checked={member.isActive}
+                          onCheckedChange={() => handleToggleActive(member.id)}
+                          disabled={member.role === 'Super Admin'}
+                        />
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* Edit Member Dialog */}
+                  <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+                    <DialogContent className="glass-card">
+                      <DialogHeader>
+                        <DialogTitle className="text-primary">Edit Member Profile</DialogTitle>
+                        <DialogDescription>
+                          Update member details and permissions
+                        </DialogDescription>
+                      </DialogHeader>
+                      {editingMember && (
+                        <div className="space-y-4 py-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="edit-name">Full Name</Label>
+                            <Input
+                              id="edit-name"
+                              value={editingMember.name}
+                              onChange={(e) => setEditingMember({ ...editingMember, name: e.target.value })}
+                              className="bg-background/50"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="edit-email">Email Address</Label>
+                            <Input
+                              id="edit-email"
+                              type="email"
+                              value={editingMember.email}
+                              onChange={(e) => setEditingMember({ ...editingMember, email: e.target.value })}
+                              className="bg-background/50"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="edit-role">Role</Label>
+                            <Select 
+                              value={editingMember.role} 
+                              onValueChange={(value) => setEditingMember({ ...editingMember, role: value })}
+                              disabled={editingMember.role === 'Super Admin'}
+                            >
+                              <SelectTrigger className="bg-background/50">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent className="glass-card">
+                                <SelectItem value="Member">Member</SelectItem>
+                                <SelectItem value="Super Admin">Super Admin</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            {editingMember.role === 'Super Admin' && (
+                              <p className="text-xs text-muted-foreground">
+                                Super Admin role cannot be changed
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                      <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                          Cancel
+                        </Button>
+                        <Button onClick={handleUpdateMember} className="ripple-effect">
+                          <Save className="h-4 w-4 mr-2" />
+                          Save Changes
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
                 </CardContent>
               </Card>
             </TabsContent>
 
             {/* Appearance Tab */}
-            <TabsContent value="appearance" className="space-y-4">
-              <Card className="glass-card border-0">
+            <TabsContent value="appearance">
+              <Card className="glass-card border-border/50">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Image className="h-5 w-5" />
-                    Appearance Settings
-                  </CardTitle>
-                  <CardDescription>
-                    Customize the app's visual appearance and background.
-                  </CardDescription>
+                  <CardTitle className="text-primary">Appearance Settings</CardTitle>
+                  <CardDescription>Customize app background and branding</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-6">
                   <div className="space-y-2">
-                    <Label htmlFor="background-upload">Background Image</Label>
-                    <Input
-                      id="background-upload"
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => setBackgroundImage(e.target.files?.[0] || null)}
-                    />
+                    <Label htmlFor="bg-upload">Background Image</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        id="bg-upload"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleBackgroundUpload}
+                        className="bg-background/50"
+                      />
+                      <Button variant="outline" size="icon" className="glass-card-hover">
+                        <Upload className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    {backgroundPreview && (
+                      <div className="mt-4 rounded-xl overflow-hidden border border-border/50">
+                        <img 
+                          src={backgroundPreview} 
+                          alt="Background preview" 
+                          className="w-full h-48 object-cover"
+                        />
+                      </div>
+                    )}
                     <p className="text-xs text-muted-foreground">
-                      Upload a custom background image for the app (recommended: 1920x1080px)
+                      Recommended: 1920x1080px or larger. Will display as overlay on gradient mesh.
                     </p>
                   </div>
 
-                  <Button onClick={handleUploadBackground} className="ripple-effect" disabled={!backgroundImage}>
-                    Upload Background
+                  <Button className="w-full ripple-effect">
+                    <Save className="h-4 w-4 mr-2" />
+                    Save Appearance
                   </Button>
                 </CardContent>
               </Card>
             </TabsContent>
 
             {/* Notifications Tab */}
-            <TabsContent value="notifications" className="space-y-4">
-              <Card className="glass-card border-0">
+            <TabsContent value="notifications">
+              <Card className="glass-card border-border/50">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Bell className="h-5 w-5" />
-                    Notification Settings
-                  </CardTitle>
-                  <CardDescription>
-                    Configure push notifications and reminder preferences.
-                  </CardDescription>
+                  <CardTitle className="text-primary">Notification Preferences</CardTitle>
+                  <CardDescription>Manage push notifications and alerts</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-muted-foreground">
-                    Notification settings will be available in future updates.
-                  </p>
+                  <div className="text-center py-12 text-muted-foreground">
+                    <Bell className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>Notification settings coming soon</p>
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>
