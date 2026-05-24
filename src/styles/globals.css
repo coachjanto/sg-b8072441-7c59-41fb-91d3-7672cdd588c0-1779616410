@@ -36,6 +36,30 @@
     --glass-border: 255 255 255 / 0.1;
   }
 
+  .light {
+    --background: 210 40% 98%;
+    --foreground: 225 50% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 225 50% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 225 50% 12%;
+    --primary: 47 78% 59%;
+    --primary-foreground: 225 50% 8%;
+    --secondary: 199 91% 64%;
+    --secondary-foreground: 225 50% 8%;
+    --muted: 210 30% 96%;
+    --muted-foreground: 225 30% 40%;
+    --accent: 340 100% 71%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 225 30% 88%;
+    --input: 225 30% 88%;
+    --ring: 47 78% 59%;
+    --glass-bg: 255 255 255 / 0.7;
+    --glass-border: 225 30% 80% / 0.3;
+  }
+
   * {
     @apply border-border;
   }
@@ -62,6 +86,10 @@
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
   }
   
+  .light .glass-card {
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  }
+  
   .glass-card-hover {
     @apply glass-card transition-all duration-300;
   }
@@ -71,6 +99,10 @@
     transform: translateY(-2px);
   }
   
+  .light .glass-card-hover:hover {
+    box-shadow: 0 12px 40px rgba(231, 197, 71, 0.2), 0 8px 32px rgba(0, 0, 0, 0.1);
+  }
+  
   .gradient-mesh {
     background: 
       radial-gradient(ellipse at 20% 30%, rgba(79, 70, 229, 0.15) 0%, transparent 50%),
@@ -78,9 +110,20 @@
       radial-gradient(ellipse at 50% 50%, rgba(0, 0, 0, 0.8) 0%, rgba(10, 15, 30, 1) 100%);
   }
   
+  .light .gradient-mesh {
+    background: 
+      radial-gradient(ellipse at 20% 30%, rgba(79, 195, 247, 0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 70%, rgba(255, 107, 157, 0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 50%, rgba(255, 255, 255, 0.9) 0%, rgba(239, 246, 255, 1) 100%);
+  }
+  
   .dot-grid {
     background-image: radial-gradient(circle, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
     background-size: 20px 20px;
+  }
+  
+  .light .dot-grid {
+    background-image: radial-gradient(circle, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
   }
   
   .torii-gate {
@@ -120,6 +163,10 @@
     animation: sakura-fall linear infinite;
     pointer-events: none;
     z-index: 1;
+  }
+  
+  .light .sakura-petal {
+    background: rgba(255, 107, 157, 0.5);
   }
   
   .sakura-petal:nth-child(1) { left: 10%; animation-duration: 12s; animation-delay: 0s; }

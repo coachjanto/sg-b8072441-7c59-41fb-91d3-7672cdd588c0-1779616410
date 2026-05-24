@@ -1,4 +1,5 @@
 import React from "react";
+import { ThemeSwitch } from "@/components/ThemeSwitch";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -31,6 +32,11 @@ export function Layout({ children }: LayoutProps) {
       <div className="sakura-petal" />
       <div className="sakura-petal" />
       <div className="sakura-petal" />
+      
+      {/* Theme Toggle */}
+      <div className="fixed top-4 right-4 z-50">
+        <ThemeSwitch />
+      </div>
       
       {/* Content */}
       <div className="relative z-10">
