@@ -1,6 +1,6 @@
 ---
 title: Main App Shell and Thread Navigation
-status: todo
+status: in_progress
 priority: high
 type: feature
 tags:
@@ -15,8 +15,8 @@ position: 2
 Main authenticated app interface with bottom navigation (mobile) / left sidebar (tablet), thread management system with swipe navigation, and admin approval workflow for new thread requests. Integrates with admin dashboard for thread approval and member management.
 
 ## Checklist
-- [ ] Build the main app shell with glassmorphism bottom nav (mobile, 48px tap targets) and left sidebar (tablet unfold mode)
-- [ ] Create navigation items: Chat (default), Documents, Expenses, Souvenirs, Gallery, Profile/Settings
+- [x] Build the main app shell with glassmorphism bottom nav (mobile, 48px tap targets) and left sidebar (tablet unfold mode)
+- [x] Create navigation items: Chat (default), Documents, Expenses, Souvenirs, Gallery, Profile/Settings
 - [ ] Implement thread tab system displaying as horizontal scrollable glass tabs with topic icons
 - [ ] Add swipe gesture navigation (left-right) to switch between threads smoothly with slide animation
 - [ ] Build "New Thread Request" flow: member fills form (thread name, icon, description) → creates pending request → notifies Admin
