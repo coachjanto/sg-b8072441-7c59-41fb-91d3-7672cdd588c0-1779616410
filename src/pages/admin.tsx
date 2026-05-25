@@ -24,7 +24,12 @@ import {
   ArrowLeft,
   Edit,
   Trash2,
-  UserPlus
+  UserPlus,
+  BookOpen,
+  Plus,
+  FileText,
+  Paperclip,
+  X
 } from "lucide-react";
 import { useRouter } from "next/router";
 import {
@@ -50,6 +55,17 @@ interface Member {
   email: string;
   role: string;
   isActive: boolean;
+}
+
+interface KnowledgeEntry {
+  id: string;
+  title: string;
+  content: string;
+  category: string;
+  type: 'text' | 'file';
+  fileName?: string;
+  fileUrl?: string;
+  createdAt: Date;
 }
 
 export default function AdminPage() {
@@ -78,6 +94,38 @@ export default function AdminPage() {
   const [newMemberName, setNewMemberName] = useState("");
   const [newMemberEmail, setNewMemberEmail] = useState("");
   const [newMemberRole, setNewMemberRole] = useState("Member");
+
+  // Knowledge Base states
+  const [knowledgeEntries, setKnowledgeEntries] = useState<KnowledgeEntry[]>([
+    {
+      id: '1',
+      title: 'Trip Dates & Overview',
+      content: 'Trip Osaka 29 Juni - 13 Juli 2026. Family: Janto (Coach/Content Creator), Yina, Pauline, Clement. Focus: kuliner, content creation untuk channel Coach Janto.',
+      category: 'Trip Info',
+      type: 'text',
+      createdAt: new Date(),
+    },
+  ]);
+  const [isAddKnowledgeOpen, setIsAddKnowledgeOpen] = useState(false);
+  const [newKnowledgeTitle, setNewKnowledgeTitle] = useState("");
+  const [newKnowledgeContent, setNewKnowledgeContent] = useState("");
+  const [newKnowledgeCategory, setNewKnowledgeCategory] = useState("Trip Info");
+  const [knowledgeFile, setKnowledgeFile] = useState<File | null>(null);
+  const [editingKnowledge, setEditingKnowledge] = useState<KnowledgeEntry | null>(null);
+  const [isEditKnowledgeOpen, setIsEditKnowledgeOpen] = useState(false);
+
+  const knowledgeCategories = [
+    "Trip Info",
+    "Itinerary",
+    "Budget & Finance",
+    "Content Strategy",
+    "Travel Tips",
+    "Restaurant List",
+    "Transportation",
+    "Accommodation",
+    "Emergency Info",
+    "Other"
+  ];
 
   const handleBackgroundUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -170,6 +218,84 @@ export default function AdminPage() {
     // TODO: Update Supabase
   };
 
+  // Knowledge Base handlers
+  const handleAddKnowledgeText = () => {
+    if (!newKnowledgeTitle || !newKnowledgeContent) {
+      alert("Judul dan konten harus diisi!");
+      return;
+    }
+
+    const newEntry: KnowledgeEntry = {
+      id: Date.now().toString(),
+      title: newKnowledgeTitle,
+      content: newKnowledgeContent,
+      category: newKnowledgeCategory,
+      type: 'text',
+      createdAt: new Date(),
+    };
+
+    setKnowledgeEntries([newEntry, ...knowledgeEntries]);
+    
+    // TODO: Save to Supabase
+    setIsAddKnowledgeOpen(false);
+    setNewKnowledgeTitle("");
+    setNewKnowledgeContent("");
+    setNewKnowledgeCategory("Trip Info");
+    alert("Knowledge base entry berhasil ditambahkan!");
+  };
+
+  const handleUploadKnowledgeFile = () => {
+    if (!knowledgeFile || !newKnowledgeTitle) {
+      alert("File dan judul harus diisi!");
+      return;
+    }
+
+    const newEntry: KnowledgeEntry = {
+      id: Date.now().toString(),
+      title: newKnowledgeTitle,
+      content: `File: ${knowledgeFile.name}`,
+      category: newKnowledgeCategory,
+      type: 'file',
+      fileName: knowledgeFile.name,
+      fileUrl: URL.createObjectURL(knowledgeFile),
+      createdAt: new Date(),
+    };
+
+    setKnowledgeEntries([newEntry, ...knowledgeEntries]);
+    
+    // TODO: Upload to Supabase Storage and save reference
+    setIsAddKnowledgeOpen(false);
+    setKnowledgeFile(null);
+    setNewKnowledgeTitle("");
+    setNewKnowledgeCategory("Trip Info");
+    alert("File berhasil diupload ke knowledge base!");
+  };
+
+  const handleEditKnowledge = (entry: KnowledgeEntry) => {
+    setEditingKnowledge({ ...entry });
+    setIsEditKnowledgeOpen(true);
+  };
+
+  const handleUpdateKnowledge = () => {
+    if (!editingKnowledge) return;
+
+    setKnowledgeEntries(knowledgeEntries.map(e =>
+      e.id === editingKnowledge.id ? editingKnowledge : e
+    ));
+
+    // TODO: Update Supabase
+    setIsEditKnowledgeOpen(false);
+    alert("Knowledge entry berhasil diupdate!");
+  };
+
+  const handleDeleteKnowledge = (entryId: string) => {
+    if (confirm("Yakin ingin menghapus entry ini dari knowledge base?")) {
+      setKnowledgeEntries(knowledgeEntries.filter(e => e.id !== entryId));
+      // TODO: Delete from Supabase
+      alert("Entry berhasil dihapus!");
+    }
+  };
+
   return (
     <>
       <SEO title="Admin Dashboard - Japan2026 Trip" />
@@ -201,9 +327,12 @@ export default function AdminPage() {
 
           {/* Tabs */}
           <Tabs defaultValue="api-keys" className="space-y-6">
-            <TabsList className="glass-card p-1 rounded-xl grid grid-cols-3 md:grid-cols-6 gap-1">
+            <TabsList className="glass-card p-1 rounded-xl grid grid-cols-3 md:grid-cols-7 gap-1">
               <TabsTrigger value="api-keys" className="text-xs md:text-sm">
-                <Key className="h-4 w-4 mr-1" /> API Keys
+                <Key className="h-4 w-4 mr-1" /> API
+              </TabsTrigger>
+              <TabsTrigger value="knowledge" className="text-xs md:text-sm">
+                <BookOpen className="h-4 w-4 mr-1" /> Knowledge
               </TabsTrigger>
               <TabsTrigger value="security" className="text-xs md:text-sm">
                 <Lock className="h-4 w-4 mr-1" /> Security
@@ -215,10 +344,10 @@ export default function AdminPage() {
                 <Users className="h-4 w-4 mr-1" /> Members
               </TabsTrigger>
               <TabsTrigger value="appearance" className="text-xs md:text-sm">
-                <ImageIcon className="h-4 w-4 mr-1" /> Appearance
+                <ImageIcon className="h-4 w-4 mr-1" /> Style
               </TabsTrigger>
               <TabsTrigger value="notifications" className="text-xs md:text-sm">
-                <Bell className="h-4 w-4 mr-1" /> Notifications
+                <Bell className="h-4 w-4 mr-1" /> Notif
               </TabsTrigger>
             </TabsList>
 
@@ -290,7 +419,269 @@ export default function AdminPage() {
               </Card>
             </TabsContent>
 
-            {/* Security Tab */}
+            {/* Knowledge Base Tab */}
+            <TabsContent value="knowledge">
+              <Card className="glass-card border-border/50">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="text-primary">AI Knowledge Base</CardTitle>
+                      <CardDescription>
+                        Add context for Claudia Yang - text prompts or uploaded documents
+                      </CardDescription>
+                    </div>
+                    <Dialog open={isAddKnowledgeOpen} onOpenChange={setIsAddKnowledgeOpen}>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" size="sm" className="glass-card-hover">
+                          <Plus className="h-4 w-4 mr-2" />
+                          Add Entry
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="glass-card max-w-2xl">
+                        <DialogHeader>
+                          <DialogTitle className="text-primary">Add to Knowledge Base</DialogTitle>
+                          <DialogDescription>
+                            Add text or upload files for Claudia Yang's context
+                          </DialogDescription>
+                        </DialogHeader>
+                        <Tabs defaultValue="text" className="mt-4">
+                          <TabsList className="grid w-full grid-cols-2 glass-card">
+                            <TabsTrigger value="text">
+                              <FileText className="h-4 w-4 mr-2" />
+                              Text Entry
+                            </TabsTrigger>
+                            <TabsTrigger value="file">
+                              <Paperclip className="h-4 w-4 mr-2" />
+                              Upload File
+                            </TabsTrigger>
+                          </TabsList>
+                          
+                          <TabsContent value="text" className="space-y-4 mt-4">
+                            <div className="space-y-2">
+                              <Label htmlFor="kb-title">Title</Label>
+                              <Input
+                                id="kb-title"
+                                value={newKnowledgeTitle}
+                                onChange={(e) => setNewKnowledgeTitle(e.target.value)}
+                                placeholder="e.g., Restaurant recommendations in Dotonbori"
+                                className="bg-background/50"
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="kb-category">Category</Label>
+                              <Select value={newKnowledgeCategory} onValueChange={setNewKnowledgeCategory}>
+                                <SelectTrigger className="bg-background/50">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent className="glass-card">
+                                  {knowledgeCategories.map(cat => (
+                                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="kb-content">Content</Label>
+                              <Textarea
+                                id="kb-content"
+                                value={newKnowledgeContent}
+                                onChange={(e) => setNewKnowledgeContent(e.target.value)}
+                                placeholder="Enter detailed information that Claudia Yang should remember..."
+                                rows={8}
+                                className="bg-background/50"
+                              />
+                            </div>
+                            <Button onClick={handleAddKnowledgeText} className="w-full ripple-effect">
+                              <Save className="h-4 w-4 mr-2" />
+                              Add to Knowledge Base
+                            </Button>
+                          </TabsContent>
+                          
+                          <TabsContent value="file" className="space-y-4 mt-4">
+                            <div className="space-y-2">
+                              <Label htmlFor="kb-file-title">Title</Label>
+                              <Input
+                                id="kb-file-title"
+                                value={newKnowledgeTitle}
+                                onChange={(e) => setNewKnowledgeTitle(e.target.value)}
+                                placeholder="e.g., Flight itinerary document"
+                                className="bg-background/50"
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="kb-file-category">Category</Label>
+                              <Select value={newKnowledgeCategory} onValueChange={setNewKnowledgeCategory}>
+                                <SelectTrigger className="bg-background/50">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent className="glass-card">
+                                  {knowledgeCategories.map(cat => (
+                                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="kb-file">Upload File</Label>
+                              <Input
+                                id="kb-file"
+                                type="file"
+                                accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"
+                                onChange={(e) => setKnowledgeFile(e.target.files?.[0] || null)}
+                                className="bg-background/50"
+                              />
+                              <p className="text-xs text-muted-foreground">
+                                Supported: PDF, DOC, DOCX, TXT, JPG, PNG
+                              </p>
+                            </div>
+                            {knowledgeFile && (
+                              <div className="glass-card p-3 rounded-lg flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <Paperclip className="h-4 w-4 text-primary" />
+                                  <span className="text-sm">{knowledgeFile.name}</span>
+                                </div>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => setKnowledgeFile(null)}
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            )}
+                            <Button onClick={handleUploadKnowledgeFile} className="w-full ripple-effect">
+                              <Upload className="h-4 w-4 mr-2" />
+                              Upload to Knowledge Base
+                            </Button>
+                          </TabsContent>
+                        </Tabs>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {knowledgeEntries.length === 0 ? (
+                    <div className="text-center py-12 text-muted-foreground">
+                      <BookOpen className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                      <p>No knowledge base entries yet</p>
+                      <p className="text-sm">Add context to help Claudia Yang provide better assistance</p>
+                    </div>
+                  ) : (
+                    knowledgeEntries.map((entry) => (
+                      <div key={entry.id} className="glass-card p-4 rounded-xl space-y-3">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              {entry.type === 'text' ? (
+                                <FileText className="h-4 w-4 text-secondary" />
+                              ) : (
+                                <Paperclip className="h-4 w-4 text-accent" />
+                              )}
+                              <h3 className="font-semibold text-foreground">{entry.title}</h3>
+                              <Badge variant="secondary" className="text-xs">
+                                {entry.category}
+                              </Badge>
+                            </div>
+                            <p className="text-sm text-muted-foreground line-clamp-2">
+                              {entry.type === 'text' ? entry.content : `File: ${entry.fileName}`}
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-2">
+                              Added {entry.createdAt.toLocaleDateString('id-ID', { 
+                                day: 'numeric', 
+                                month: 'short', 
+                                year: 'numeric' 
+                              })}
+                            </p>
+                          </div>
+                          <div className="flex gap-2">
+                            {entry.type === 'text' && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleEditKnowledge(entry)}
+                                className="glass-card-hover"
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                            )}
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleDeleteKnowledge(entry.id)}
+                              className="glass-card-hover text-destructive hover:text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+
+                  {/* Edit Knowledge Dialog */}
+                  <Dialog open={isEditKnowledgeOpen} onOpenChange={setIsEditKnowledgeOpen}>
+                    <DialogContent className="glass-card max-w-2xl">
+                      <DialogHeader>
+                        <DialogTitle className="text-primary">Edit Knowledge Entry</DialogTitle>
+                        <DialogDescription>
+                          Update the content of this knowledge base entry
+                        </DialogDescription>
+                      </DialogHeader>
+                      {editingKnowledge && (
+                        <div className="space-y-4 py-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="edit-kb-title">Title</Label>
+                            <Input
+                              id="edit-kb-title"
+                              value={editingKnowledge.title}
+                              onChange={(e) => setEditingKnowledge({ ...editingKnowledge, title: e.target.value })}
+                              className="bg-background/50"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="edit-kb-category">Category</Label>
+                            <Select 
+                              value={editingKnowledge.category} 
+                              onValueChange={(value) => setEditingKnowledge({ ...editingKnowledge, category: value })}
+                            >
+                              <SelectTrigger className="bg-background/50">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent className="glass-card">
+                                {knowledgeCategories.map(cat => (
+                                  <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="edit-kb-content">Content</Label>
+                            <Textarea
+                              id="edit-kb-content"
+                              value={editingKnowledge.content}
+                              onChange={(e) => setEditingKnowledge({ ...editingKnowledge, content: e.target.value })}
+                              rows={8}
+                              className="bg-background/50"
+                            />
+                          </div>
+                        </div>
+                      )}
+                      <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsEditKnowledgeOpen(false)}>
+                          Cancel
+                        </Button>
+                        <Button onClick={handleUpdateKnowledge} className="ripple-effect">
+                          <Save className="h-4 w-4 mr-2" />
+                          Save Changes
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Security Tab - Keep existing content */}
             <TabsContent value="security">
               <Card className="glass-card border-border/50">
                 <CardHeader>
@@ -335,6 +726,7 @@ export default function AdminPage() {
               </Card>
             </TabsContent>
 
+            {/* Other tabs remain the same - Budget, Members, Appearance, Notifications */}
             {/* Budget Tab */}
             <TabsContent value="budget">
               <Card className="glass-card border-border/50">
@@ -380,7 +772,7 @@ export default function AdminPage() {
               </Card>
             </TabsContent>
 
-            {/* Members Tab */}
+            {/* Members Tab - Already has full implementation */}
             <TabsContent value="members">
               <Card className="glass-card border-border/50">
                 <CardHeader>
