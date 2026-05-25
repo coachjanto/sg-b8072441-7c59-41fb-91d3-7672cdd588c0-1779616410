@@ -28,6 +28,9 @@ export default function Home() {
 
   // Load login state from localStorage on mount
   useEffect(() => {
+    // Only run on client-side
+    if (typeof window === 'undefined') return;
+    
     const savedLoginState = localStorage.getItem('user_session');
     if (savedLoginState) {
       const session = JSON.parse(savedLoginState);
@@ -39,20 +42,20 @@ export default function Home() {
 
   // Check API connection status on mount and when returning from admin
   useEffect(() => {
-    if (isLoggedIn) {
-      const savedSettings = localStorage.getItem('admin_settings');
-      if (savedSettings) {
-        const settings = JSON.parse(savedSettings);
-        const hasClaudeKey = settings.claude_api_key && settings.claude_api_key.length > 0;
-        const hasOpenaiKey = settings.openai_api_key && settings.openai_api_key.length > 0;
-        
-        setAiProvider(settings.ai_provider || 'claude');
-        
-        if (settings.ai_provider === 'openai') {
-          setApiConnected(hasOpenaiKey);
-        } else {
-          setApiConnected(hasClaudeKey);
-        }
+    if (!isLoggedIn || typeof window === 'undefined') return;
+    
+    const savedSettings = localStorage.getItem('admin_settings');
+    if (savedSettings) {
+      const settings = JSON.parse(savedSettings);
+      const hasClaudeKey = settings.claude_api_key && settings.claude_api_key.length > 0;
+      const hasOpenaiKey = settings.openai_api_key && settings.openai_api_key.length > 0;
+      
+      setAiProvider(settings.ai_provider || 'claude');
+      
+      if (settings.ai_provider === 'openai') {
+        setApiConnected(hasOpenaiKey);
+      } else {
+        setApiConnected(hasClaudeKey);
       }
     }
   }, [isLoggedIn]);
@@ -61,15 +64,19 @@ export default function Home() {
     setCurrentUser(username);
     setIsLoggedIn(true);
     
-    // Save login state to localStorage
-    localStorage.setItem('user_session', JSON.stringify({ username }));
+    // Save login state to localStorage (client-side only)
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('user_session', JSON.stringify({ username }));
+    }
     
     // Check if first time login
-    const hasLoggedBefore = localStorage.getItem(`${username}_has_logged_before`);
-    setIsFirstLogin(!hasLoggedBefore);
-    
-    if (!hasLoggedBefore) {
-      localStorage.setItem(`${username}_has_logged_before`, 'true');
+    if (typeof window !== 'undefined') {
+      const hasLoggedBefore = localStorage.getItem(`${username}_has_logged_before`);
+      setIsFirstLogin(!hasLoggedBefore);
+      
+      if (!hasLoggedBefore) {
+        localStorage.setItem(`${username}_has_logged_before`, 'true');
+      }
     }
   };
 
