@@ -98,6 +98,8 @@ export default function AdminPage() {
   const [newMemberName, setNewMemberName] = useState("");
   const [newMemberEmail, setNewMemberEmail] = useState("");
   const [newMemberRole, setNewMemberRole] = useState("Member");
+  const [newMemberPassword, setNewMemberPassword] = useState("");
+  const [editMemberPassword, setEditMemberPassword] = useState("");
 
   // Knowledge Base states
   const [knowledgeEntries, setKnowledgeEntries] = useState<KnowledgeEntry[]>([
@@ -143,12 +145,38 @@ export default function AdminPage() {
     }
   };
 
-  const handleSaveApiKeys = () => {
-    // TODO: Save to Supabase admin_settings
-    alert("API Keys saved successfully!");
+  const handleSaveApiKeys = async () => {
+    try {
+      // TODO: Implement actual Supabase save
+      // const { error } = await supabase
+      //   .from('admin_settings')
+      //   .upsert({
+      //     ai_provider: aiProvider,
+      //     claude_api_key: claudeApiKey,
+      //     openai_api_key: openaiApiKey,
+      //     ai_model: aiModel,
+      //     google_drive_key: googleDriveKey,
+      //   });
+      
+      // if (error) throw error;
+      
+      // For now, save to localStorage
+      localStorage.setItem('admin_settings', JSON.stringify({
+        ai_provider: aiProvider,
+        claude_api_key: claudeApiKey,
+        openai_api_key: openaiApiKey,
+        ai_model: aiModel,
+        google_drive_key: googleDriveKey,
+      }));
+      
+      alert("API Keys saved successfully!");
+    } catch (error) {
+      console.error('Error saving API keys:', error);
+      alert("Error saving API keys!");
+    }
   };
 
-  const handleSavePin = () => {
+  const handleSavePin = async () => {
     if (securityPin !== confirmPin) {
       alert("PIN tidak sama!");
       return;
@@ -157,13 +185,31 @@ export default function AdminPage() {
       alert("PIN harus 6 digit!");
       return;
     }
-    // TODO: Save to Supabase
-    alert("PIN berhasil disimpan!");
+    
+    try {
+      // TODO: Implement actual Supabase save
+      localStorage.setItem('security_pin', securityPin);
+      alert("PIN berhasil disimpan!");
+      setSecurityPin("");
+      setConfirmPin("");
+    } catch (error) {
+      console.error('Error saving PIN:', error);
+      alert("Error saving PIN!");
+    }
   };
 
-  const handleSaveBudget = () => {
-    // TODO: Save to Supabase
-    alert("Budget settings saved!");
+  const handleSaveBudget = async () => {
+    try {
+      // TODO: Implement actual Supabase save
+      localStorage.setItem('budget_settings', JSON.stringify({
+        total_budget: totalBudget,
+        per_pax_billing: perPaxBilling,
+      }));
+      alert("Budget settings saved!");
+    } catch (error) {
+      console.error('Error saving budget:', error);
+      alert("Error saving budget!");
+    }
   };
 
   const handleEditMember = (member: Member) => {
@@ -177,15 +223,24 @@ export default function AdminPage() {
     setMembers(members.map(m => 
       m.id === editingMember.id ? editingMember : m
     ));
+
+    // TODO: Update to Supabase with password if changed
+    if (editMemberPassword) {
+      const savedMembers = JSON.parse(localStorage.getItem('members') || '[]');
+      const updatedMembers = savedMembers.map((m: any) =>
+        m.id === editingMember.id ? { ...m, password: editMemberPassword } : m
+      );
+      localStorage.setItem('members', JSON.stringify(updatedMembers));
+    }
     
-    // TODO: Update to Supabase
     setIsEditDialogOpen(false);
+    setEditMemberPassword("");
     alert("Member profile updated successfully!");
   };
 
   const handleAddMember = () => {
-    if (!newMemberName || !newMemberEmail) {
-      alert("Nama dan email harus diisi!");
+    if (!newMemberName || !newMemberEmail || !newMemberPassword) {
+      alert("Nama, email, dan password harus diisi!");
       return;
     }
 
@@ -199,10 +254,16 @@ export default function AdminPage() {
 
     setMembers([...members, newMember]);
     
-    // TODO: Save to Supabase
+    // TODO: Save to Supabase with password
+    // For now, save to localStorage
+    const savedMembers = JSON.parse(localStorage.getItem('members') || '[]');
+    savedMembers.push({ ...newMember, password: newMemberPassword });
+    localStorage.setItem('members', JSON.stringify(savedMembers));
+    
     setIsAddDialogOpen(false);
     setNewMemberName("");
     setNewMemberEmail("");
+    setNewMemberPassword("");
     setNewMemberRole("Member");
     alert("Member baru berhasil ditambahkan!");
   };
@@ -980,6 +1041,17 @@ export default function AdminPage() {
                             />
                           </div>
                           <div className="space-y-2">
+                            <Label htmlFor="new-password">Password</Label>
+                            <Input
+                              id="new-password"
+                              type="password"
+                              value={newMemberPassword}
+                              onChange={(e) => setNewMemberPassword(e.target.value)}
+                              placeholder="Set login password"
+                              className="bg-background/50"
+                            />
+                          </div>
+                          <div className="space-y-2">
                             <Label htmlFor="new-role">Role</Label>
                             <Select value={newMemberRole} onValueChange={setNewMemberRole}>
                               <SelectTrigger className="bg-background/50">
@@ -1087,6 +1159,22 @@ export default function AdminPage() {
                               onChange={(e) => setEditingMember({ ...editingMember, email: e.target.value })}
                               className="bg-background/50"
                             />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="edit-password">New Password (leave empty to keep current)</Label>
+                            <Input
+                              id="edit-password"
+                              type="password"
+                              value={editMemberPassword}
+                              onChange={(e) => setEditMemberPassword(e.target.value)}
+                              placeholder="Enter new password or leave empty"
+                              className="bg-background/50"
+                            />
+                            <p className="text-xs text-muted-foreground">
+                              {editingMember.name === "Janto Djojo" 
+                                ? "Current password: 1100110011" 
+                                : "Leave empty to keep current password"}
+                            </p>
                           </div>
                           <div className="space-y-2">
                             <Label htmlFor="edit-role">Role</Label>
