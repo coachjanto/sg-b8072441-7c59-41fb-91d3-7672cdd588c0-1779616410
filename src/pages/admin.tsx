@@ -78,6 +78,8 @@ export default function AdminPage() {
   const [aiModel, setAiModel] = useState("claude-3-5-sonnet-20240620");
   const [googleDriveKey, setGoogleDriveKey] = useState("");
   const [showGoogleKey, setShowGoogleKey] = useState(false);
+  const [isTestingConnection, setIsTestingConnection] = useState(false);
+  const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
   const [securityPin, setSecurityPin] = useState("");
   const [confirmPin, setConfirmPin] = useState("");
   const [totalBudget, setTotalBudget] = useState("");
@@ -171,6 +173,62 @@ export default function AdminPage() {
         setBackgroundPreview(reader.result as string);
       };
       reader.readAsDataURL(file);
+    }
+  };
+
+  const handleTestConnection = async () => {
+    setIsTestingConnection(true);
+    setTestResult(null);
+    
+    try {
+      const apiKey = aiProvider === 'claude' ? claudeApiKey : openaiApiKey;
+      
+      if (!apiKey || apiKey.trim().length === 0) {
+        setTestResult({
+          success: false,
+          message: `❌ ${aiProvider === 'claude' ? 'Claude' : 'OpenAI'} API key belum diisi!`
+        });
+        setIsTestingConnection(false);
+        return;
+      }
+
+      // Test API connection with a simple request
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: 'Test connection',
+          provider: aiProvider,
+          apiKey: apiKey,
+          model: aiModel,
+          currentUser: 'Admin',
+          knowledgeContext: '',
+          conversationHistory: []
+        })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Connection test failed');
+      }
+
+      const data = await response.json();
+      
+      setTestResult({
+        success: true,
+        message: `✅ ${aiProvider === 'claude' ? 'Claude' : 'OpenAI'} API key valid! Connection successful.\n\nModel: ${aiModel}\nResponse: ${data.response.substring(0, 100)}...`
+      });
+      
+    } catch (error: any) {
+      console.error('Test connection error:', error);
+      setTestResult({
+        success: false,
+        message: `❌ Connection failed: ${error.message}\n\nPastikan API key benar dan memiliki credit/quota.`
+      });
+    } finally {
+      setIsTestingConnection(false);
     }
   };
 
@@ -690,6 +748,41 @@ export default function AdminPage() {
                     <Save className="h-4 w-4 mr-2" />
                     Save Configuration
                   </Button>
+
+                  <div className="relative">
+                    <Button 
+                      onClick={handleTestConnection} 
+                      variant="outline"
+                      disabled={isTestingConnection || (!claudeApiKey && !openaiApiKey)}
+                      className="w-full glass-card-hover"
+                    >
+                      {isTestingConnection ? (
+                        <>
+                          <span className="animate-spin mr-2">⏳</span>
+                          Testing Connection...
+                        </>
+                      ) : (
+                        <>
+                          <Shield className="h-4 w-4 mr-2" />
+                          Test Connection
+                        </>
+                      )}
+                    </Button>
+                  </div>
+
+                  {testResult && (
+                    <div className={`glass-card p-4 rounded-xl border ${
+                      testResult.success 
+                        ? 'bg-green-500/10 border-green-500/50' 
+                        : 'bg-destructive/10 border-destructive/50'
+                    }`}>
+                      <p className={`text-sm whitespace-pre-line ${
+                        testResult.success ? 'text-green-400' : 'text-destructive'
+                      }`}>
+                        {testResult.message}
+                      </p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
