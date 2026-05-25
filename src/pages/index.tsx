@@ -24,6 +24,17 @@ export default function Home() {
   const [apiConnected, setApiConnected] = useState(false);
   const [aiProvider, setAiProvider] = useState<"claude" | "openai">("claude");
 
+  // Load login state from localStorage on mount
+  useEffect(() => {
+    const savedLoginState = localStorage.getItem('user_session');
+    if (savedLoginState) {
+      const session = JSON.parse(savedLoginState);
+      setCurrentUser(session.username);
+      setIsLoggedIn(true);
+      setIsFirstLogin(false);
+    }
+  }, []);
+
   // Check API connection status on mount and when returning from admin
   useEffect(() => {
     if (isLoggedIn) {
@@ -47,6 +58,9 @@ export default function Home() {
   const handleLogin = (username: string) => {
     setCurrentUser(username);
     setIsLoggedIn(true);
+    
+    // Save login state to localStorage
+    localStorage.setItem('user_session', JSON.stringify({ username }));
     
     // Check if first time login
     const hasLoggedBefore = localStorage.getItem(`${username}_has_logged_before`);
