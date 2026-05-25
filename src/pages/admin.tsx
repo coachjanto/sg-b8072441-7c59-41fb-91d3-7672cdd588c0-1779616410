@@ -499,7 +499,7 @@ export default function AdminPage() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => window.location.href = '/'}
+                  onClick={() => router.push('/')}
                   className="glass-card-hover"
                 >
                   <ArrowLeft className="h-5 w-5" />

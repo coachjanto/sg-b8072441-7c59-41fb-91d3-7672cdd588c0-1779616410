@@ -5,6 +5,7 @@ import { SEO } from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Send, Menu, Paperclip } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { useRouter } from "next/router";
 
 interface Message {
   id: string;
@@ -15,6 +16,7 @@ interface Message {
 }
 
 export default function Home() {
+  const router = useRouter();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isFirstLogin, setIsFirstLogin] = useState(false);
   const [currentUser, setCurrentUser] = useState("");
@@ -346,7 +348,7 @@ export default function Home() {
                 variant="ghost" 
                 size="sm" 
                 className="flex-1"
-                onClick={() => window.location.href = '/admin'}
+                onClick={() => router.push('/admin')}
               >
                 ⚙️ <span className="ml-1 hidden sm:inline">Admin</span>
               </Button>
