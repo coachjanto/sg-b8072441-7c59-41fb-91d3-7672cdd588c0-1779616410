@@ -72,6 +72,10 @@ export default function AdminPage() {
   const router = useRouter();
   const [claudeApiKey, setClaudeApiKey] = useState("");
   const [showClaudeKey, setShowClaudeKey] = useState(false);
+  const [openaiApiKey, setOpenaiApiKey] = useState("");
+  const [showOpenaiKey, setShowOpenaiKey] = useState(false);
+  const [aiProvider, setAiProvider] = useState<"claude" | "openai">("claude");
+  const [aiModel, setAiModel] = useState("claude-3-5-sonnet-20241022");
   const [googleDriveKey, setGoogleDriveKey] = useState("");
   const [showGoogleKey, setShowGoogleKey] = useState(false);
   const [securityPin, setSecurityPin] = useState("");
@@ -296,6 +300,28 @@ export default function AdminPage() {
     }
   };
 
+  const claudeModels = [
+    { value: "claude-3-5-sonnet-20241022", label: "Claude 3.5 Sonnet (Recommended)" },
+    { value: "claude-3-5-haiku-20241022", label: "Claude 3.5 Haiku (Fast & Affordable)" },
+    { value: "claude-3-opus-20240229", label: "Claude 3 Opus (Most Capable)" },
+  ];
+
+  const openaiModels = [
+    { value: "gpt-4o", label: "GPT-4o (Recommended)" },
+    { value: "gpt-4o-mini", label: "GPT-4o Mini (Fast & Affordable)" },
+    { value: "gpt-4-turbo", label: "GPT-4 Turbo" },
+    { value: "gpt-3.5-turbo", label: "GPT-3.5 Turbo (Budget)" },
+  ];
+
+  const handleAiProviderChange = (provider: "claude" | "openai") => {
+    setAiProvider(provider);
+    if (provider === "claude") {
+      setAiModel("claude-3-5-sonnet-20241022");
+    } else {
+      setAiModel("gpt-4o");
+    }
+  };
+
   return (
     <>
       <SEO title="Admin Dashboard - Japan2026 Trip" />
@@ -355,38 +381,176 @@ export default function AdminPage() {
             <TabsContent value="api-keys">
               <Card className="glass-card border-border/50">
                 <CardHeader>
-                  <CardTitle className="text-primary">API Configuration</CardTitle>
-                  <CardDescription>Manage external service API keys</CardDescription>
+                  <CardTitle className="text-primary">AI Configuration</CardTitle>
+                  <CardDescription>Select AI provider and manage API keys</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="claude-key">Claude API Key</Label>
-                    <div className="relative">
-                      <Input
-                        id="claude-key"
-                        type={showClaudeKey ? "text" : "password"}
-                        value={claudeApiKey}
-                        onChange={(e) => setClaudeApiKey(e.target.value)}
-                        placeholder="sk-ant-..."
-                        className="pr-10 bg-background/50"
-                      />
-                      <Button
+                  {/* AI Provider Selection */}
+                  <div className="space-y-3">
+                    <Label>AI Provider</Label>
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
                         type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="absolute right-0 top-0"
-                        onClick={() => setShowClaudeKey(!showClaudeKey)}
+                        onClick={() => handleAiProviderChange("claude")}
+                        className={`glass-card p-4 rounded-xl text-left transition-all ${
+                          aiProvider === "claude"
+                            ? "border-2 border-primary bg-primary/10"
+                            : "border border-border/50 hover:border-primary/50"
+                        }`}
                       >
-                        {showClaudeKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </Button>
+                        <div className="flex items-center gap-2 mb-2">
+                          <div
+                            className={`w-4 h-4 rounded-full border-2 ${
+                              aiProvider === "claude"
+                                ? "border-primary bg-primary"
+                                : "border-muted-foreground"
+                            }`}
+                          />
+                          <span className="font-semibold">Claude AI</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Anthropic's Claude models - Best for long context & analysis
+                        </p>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleAiProviderChange("openai")}
+                        className={`glass-card p-4 rounded-xl text-left transition-all ${
+                          aiProvider === "openai"
+                            ? "border-2 border-primary bg-primary/10"
+                            : "border border-border/50 hover:border-primary/50"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2 mb-2">
+                          <div
+                            className={`w-4 h-4 rounded-full border-2 ${
+                              aiProvider === "openai"
+                                ? "border-primary bg-primary"
+                                : "border-muted-foreground"
+                            }`}
+                          />
+                          <span className="font-semibold">OpenAI</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          GPT-4 models - Fast & versatile general purpose AI
+                        </p>
+                      </button>
                     </div>
+                  </div>
+
+                  {/* Model Selection */}
+                  <div className="space-y-2">
+                    <Label htmlFor="ai-model">AI Model</Label>
+                    <Select value={aiModel} onValueChange={setAiModel}>
+                      <SelectTrigger className="bg-background/50">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="glass-card">
+                        {aiProvider === "claude"
+                          ? claudeModels.map((model) => (
+                              <SelectItem key={model.value} value={model.value}>
+                                {model.label}
+                              </SelectItem>
+                            ))
+                          : openaiModels.map((model) => (
+                              <SelectItem key={model.value} value={model.value}>
+                                {model.label}
+                              </SelectItem>
+                            ))}
+                      </SelectContent>
+                    </Select>
                     <p className="text-xs text-muted-foreground">
-                      Required for Claudia Yang AI consultant to function
+                      {aiProvider === "claude"
+                        ? "Claude 3.5 Sonnet offers the best balance of intelligence and speed"
+                        : "GPT-4o is the fastest and most cost-effective flagship model"}
                     </p>
                   </div>
 
+                  {/* API Key Input - Conditional based on provider */}
+                  {aiProvider === "claude" ? (
+                    <div className="space-y-2">
+                      <Label htmlFor="claude-key">Claude API Key</Label>
+                      <div className="relative">
+                        <Input
+                          id="claude-key"
+                          type={showClaudeKey ? "text" : "password"}
+                          value={claudeApiKey}
+                          onChange={(e) => setClaudeApiKey(e.target.value)}
+                          placeholder="sk-ant-api03-..."
+                          className="pr-10 bg-background/50 font-mono text-sm"
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="absolute right-0 top-0"
+                          onClick={() => setShowClaudeKey(!showClaudeKey)}
+                        >
+                          {showClaudeKey ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Get your API key from{" "}
+                        <a
+                          href="https://console.anthropic.com/"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary hover:underline"
+                        >
+                          console.anthropic.com
+                        </a>
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <Label htmlFor="openai-key">OpenAI API Key</Label>
+                      <div className="relative">
+                        <Input
+                          id="openai-key"
+                          type={showOpenaiKey ? "text" : "password"}
+                          value={openaiApiKey}
+                          onChange={(e) => setOpenaiApiKey(e.target.value)}
+                          placeholder="sk-proj-..."
+                          className="pr-10 bg-background/50 font-mono text-sm"
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="absolute right-0 top-0"
+                          onClick={() => setShowOpenaiKey(!showOpenaiKey)}
+                        >
+                          {showOpenaiKey ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Get your API key from{" "}
+                        <a
+                          href="https://platform.openai.com/api-keys"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary hover:underline"
+                        >
+                          platform.openai.com
+                        </a>
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="h-px bg-border/50 my-4" />
+
+                  {/* Google Drive API */}
                   <div className="space-y-2">
-                    <Label htmlFor="gdrive-key">Google Drive API Key</Label>
+                    <Label htmlFor="gdrive-key">Google Drive API Key (Optional)</Label>
                     <div className="relative">
                       <Input
                         id="gdrive-key"
@@ -394,7 +558,7 @@ export default function AdminPage() {
                         value={googleDriveKey}
                         onChange={(e) => setGoogleDriveKey(e.target.value)}
                         placeholder="AIza..."
-                        className="pr-10 bg-background/50"
+                        className="pr-10 bg-background/50 font-mono text-sm"
                       />
                       <Button
                         type="button"
@@ -403,7 +567,11 @@ export default function AdminPage() {
                         className="absolute right-0 top-0"
                         onClick={() => setShowGoogleKey(!showGoogleKey)}
                       >
-                        {showGoogleKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        {showGoogleKey ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
                       </Button>
                     </div>
                     <p className="text-xs text-muted-foreground">
@@ -413,7 +581,7 @@ export default function AdminPage() {
 
                   <Button onClick={handleSaveApiKeys} className="w-full ripple-effect">
                     <Save className="h-4 w-4 mr-2" />
-                    Save API Keys
+                    Save Configuration
                   </Button>
                 </CardContent>
               </Card>

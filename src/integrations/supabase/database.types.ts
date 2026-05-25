@@ -17,21 +17,30 @@ export type Database = {
     Tables: {
       admin_settings: {
         Row: {
+          ai_model: string | null
+          ai_provider: string | null
           id: string
+          openai_api_key: string | null
           setting_key: string
           setting_value: string | null
           updated_at: string | null
           updated_by: string | null
         }
         Insert: {
+          ai_model?: string | null
+          ai_provider?: string | null
           id?: string
+          openai_api_key?: string | null
           setting_key: string
           setting_value?: string | null
           updated_at?: string | null
           updated_by?: string | null
         }
         Update: {
+          ai_model?: string | null
+          ai_provider?: string | null
           id?: string
+          openai_api_key?: string | null
           setting_key?: string
           setting_value?: string | null
           updated_at?: string | null
