@@ -73,7 +73,7 @@ export default function Home() {
     }
   }, [isLoggedIn, currentUser, isFirstLogin]);
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (!inputMessage.trim()) return;
     
     // Check API connection before sending
@@ -99,7 +99,7 @@ export default function Home() {
       return;
     }
     
-    const newMessage = {
+    const userMessage = {
       id: Date.now().toString(),
       sender: currentUser,
       text: inputMessage,
@@ -107,19 +107,153 @@ export default function Home() {
       isAI: false
     };
     
-    setMessages([...messages, newMessage]);
+    setMessages([...messages, userMessage]);
+    const currentInput = inputMessage;
     setInputMessage("");
     
-    // Simulate AI response with API info
-    setTimeout(() => {
+    // Call real AI API
+    try {
+      const savedSettings = localStorage.getItem('admin_settings');
+      if (!savedSettings) {
+        throw new Error('Settings not found');
+      }
+      
+      const settings = JSON.parse(savedSettings);
+      const apiKey = settings.ai_provider === 'openai' 
+        ? settings.openai_api_key 
+        : settings.claude_api_key;
+      const model = settings.ai_model || 'claude-3-5-sonnet-20241022';
+      
+      // Get knowledge base for context
+      const savedKnowledge = localStorage.getItem('knowledge_base');
+      let knowledgeContext = '';
+      if (savedKnowledge) {
+        const knowledge = JSON.parse(savedKnowledge);
+        knowledgeContext = knowledge.map((entry: any) => 
+          `[${entry.category}] ${entry.title}: ${entry.content}`
+        ).join('\n\n');
+      }
+      
+      // Build conversation history for context
+      const conversationHistory = messages.slice(-5).map(msg => ({
+        role: msg.isAI ? 'assistant' : 'user',
+        content: msg.text
+      }));
+      
+      let aiResponse = '';
+      
+      if (settings.ai_provider === 'claude') {
+        // Call Claude API
+        const response = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': apiKey,
+            'anthropic-version': '2023-06-01'
+          },
+          body: JSON.stringify({
+            model: model,
+            max_tokens: 1024,
+            system: `Kamu adalah Claudia Yang, konsultan AI perjalanan dan konten untuk keluarga Djojo yang akan trip ke Osaka, Jepang dari 29 Juni - 13 Juli 2026. 
+
+Anggota keluarga: Janto (Super Admin, Business Coach/Content Creator), Yina, Pauline, Clement.
+
+Kamu berbicara dalam Bahasa Indonesia dengan natural dan ramah. Saat ini kamu sedang berbicara dengan ${currentUser}.
+
+KNOWLEDGE BASE:
+${knowledgeContext || 'Belum ada knowledge base yang ditambahkan.'}
+
+Tugasmu:
+- Membantu dengan itinerary & rute harian
+- Rekomendasi kuliner & budget meals
+- Ide konten Reels Live & posting untuk channel Coach Janto
+- Info transportasi, harga tiket, jam buka tempat wisata
+- Reminder & alarm persiapan
+- Rencana spontan dadakan
+
+Jawab dengan spesifik, personal, dan action-oriented.`,
+            messages: [
+              ...conversationHistory,
+              { role: 'user', content: currentInput }
+            ]
+          })
+        });
+        
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error?.message || 'Claude API error');
+        }
+        
+        const data = await response.json();
+        aiResponse = data.content[0].text;
+        
+      } else {
+        // Call OpenAI API
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`
+          },
+          body: JSON.stringify({
+            model: model,
+            messages: [
+              {
+                role: 'system',
+                content: `Kamu adalah Claudia Yang, konsultan AI perjalanan dan konten untuk keluarga Djojo yang akan trip ke Osaka, Jepang dari 29 Juni - 13 Juli 2026. 
+
+Anggota keluarga: Janto (Super Admin, Business Coach/Content Creator), Yina, Pauline, Clement.
+
+Kamu berbicara dalam Bahasa Indonesia dengan natural dan ramah. Saat ini kamu sedang berbicara dengan ${currentUser}.
+
+KNOWLEDGE BASE:
+${knowledgeContext || 'Belum ada knowledge base yang ditambahkan.'}
+
+Tugasmu:
+- Membantu dengan itinerary & rute harian
+- Rekomendasi kuliner & budget meals
+- Ide konten Reels Live & posting untuk channel Coach Janto
+- Info transportasi, harga tiket, jam buka tempat wisata
+- Reminder & alarm persiapan
+- Rencana spontan dadakan
+
+Jawab dengan spesifik, personal, dan action-oriented.`
+              },
+              ...conversationHistory,
+              { role: 'user', content: currentInput }
+            ],
+            max_tokens: 1024,
+            temperature: 0.7
+          })
+        });
+        
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error?.message || 'OpenAI API error');
+        }
+        
+        const data = await response.json();
+        aiResponse = data.choices[0].message.content;
+      }
+      
       setMessages(prev => [...prev, {
         id: (Date.now() + 1).toString(),
         sender: 'Claudia Yang',
-        text: `Terima kasih ${currentUser}! Saya sedang memproses pertanyaan Anda menggunakan ${aiProvider === 'claude' ? 'Claude AI' : 'OpenAI GPT'}. (Integrasi API aktif, response engine belum diimplementasi)`,
+        text: aiResponse,
         timestamp: new Date(),
         isAI: true
       }]);
-    }, 1000);
+      
+    } catch (error: any) {
+      console.error('AI API Error:', error);
+      setMessages(prev => [...prev, {
+        id: (Date.now() + 1).toString(),
+        sender: 'Claudia Yang',
+        text: `❌ Maaf ${currentUser}, ada error saat menghubungi AI: ${error.message}\n\nSilakan cek API key di Admin Settings atau hubungi Super Admin.`,
+        timestamp: new Date(),
+        isAI: true
+      }]);
+    }
   };
 
   if (!isLoggedIn) {
