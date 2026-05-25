@@ -122,7 +122,7 @@ export default function Home() {
       const apiKey = settings.ai_provider === 'openai' 
         ? settings.openai_api_key 
         : settings.claude_api_key;
-      const model = settings.ai_model || 'claude-3-5-sonnet-20241022';
+      const model = settings.ai_model || 'claude-3-5-sonnet-20240620';
       
       // Get knowledge base for context
       const savedKnowledge = localStorage.getItem('knowledge_base');
