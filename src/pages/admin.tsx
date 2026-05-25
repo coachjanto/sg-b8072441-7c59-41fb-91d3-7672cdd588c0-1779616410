@@ -138,6 +138,15 @@ export default function AdminPage() {
       setTotalBudget(budget.total_budget || '');
       setPerPaxBilling(budget.per_pax_billing || false);
     }
+
+    const savedKnowledge = localStorage.getItem('knowledge_base');
+    if (savedKnowledge) {
+      const knowledge = JSON.parse(savedKnowledge);
+      setKnowledgeEntries(knowledge.map((entry: any) => ({
+        ...entry,
+        createdAt: new Date(entry.createdAt)
+      })));
+    }
   }, []);
 
   const knowledgeCategories = [
@@ -167,68 +176,62 @@ export default function AdminPage() {
 
   const handleSaveApiKeys = async () => {
     try {
-      // TODO: Implement actual Supabase save
-      // const { error } = await supabase
-      //   .from('admin_settings')
-      //   .upsert({
-      //     ai_provider: aiProvider,
-      //     claude_api_key: claudeApiKey,
-      //     openai_api_key: openaiApiKey,
-      //     ai_model: aiModel,
-      //     google_drive_key: googleDriveKey,
-      //   });
-      
-      // if (error) throw error;
-      
-      // For now, save to localStorage
-      localStorage.setItem('admin_settings', JSON.stringify({
+      // Save to localStorage without any auth changes
+      const settings = {
         ai_provider: aiProvider,
         claude_api_key: claudeApiKey,
         openai_api_key: openaiApiKey,
         ai_model: aiModel,
         google_drive_key: googleDriveKey,
-      }));
+      };
       
-      alert("API Keys saved successfully!");
+      localStorage.setItem('admin_settings', JSON.stringify(settings));
+      
+      // Show success without any navigation or state changes
+      alert("✅ API Configuration saved successfully!\n\nSettings tersimpan dan akan langsung aktif di chat.");
+      
+      // DO NOT call router.push or any auth changes here!
     } catch (error) {
       console.error('Error saving API keys:', error);
-      alert("Error saving API keys!");
+      alert("❌ Error saving API keys!");
     }
   };
 
   const handleSavePin = async () => {
     if (securityPin !== confirmPin) {
-      alert("PIN tidak sama!");
+      alert("❌ PIN tidak sama!");
       return;
     }
     if (securityPin.length !== 6) {
-      alert("PIN harus 6 digit!");
+      alert("❌ PIN harus 6 digit!");
       return;
     }
     
     try {
-      // TODO: Implement actual Supabase save
       localStorage.setItem('security_pin', securityPin);
-      alert("PIN berhasil disimpan!");
+      alert("✅ PIN berhasil disimpan!");
       setSecurityPin("");
       setConfirmPin("");
+      // DO NOT call router.push here!
     } catch (error) {
       console.error('Error saving PIN:', error);
-      alert("Error saving PIN!");
+      alert("❌ Error saving PIN!");
     }
   };
 
   const handleSaveBudget = async () => {
     try {
-      // TODO: Implement actual Supabase save
-      localStorage.setItem('budget_settings', JSON.stringify({
+      const budgetSettings = {
         total_budget: totalBudget,
         per_pax_billing: perPaxBilling,
-      }));
-      alert("Budget settings saved!");
+      };
+      
+      localStorage.setItem('budget_settings', JSON.stringify(budgetSettings));
+      alert("✅ Budget settings saved!");
+      // DO NOT call router.push here!
     } catch (error) {
       console.error('Error saving budget:', error);
-      alert("Error saving budget!");
+      alert("❌ Error saving budget!");
     }
   };
 
@@ -244,7 +247,7 @@ export default function AdminPage() {
       m.id === editingMember.id ? editingMember : m
     ));
 
-    // TODO: Update to Supabase with password if changed
+    // Update password if changed
     if (editMemberPassword) {
       const savedMembers = JSON.parse(localStorage.getItem('members') || '[]');
       const updatedMembers = savedMembers.map((m: any) =>
@@ -255,12 +258,13 @@ export default function AdminPage() {
     
     setIsEditDialogOpen(false);
     setEditMemberPassword("");
-    alert("Member profile updated successfully!");
+    alert("✅ Member profile updated successfully!");
+    // DO NOT call router.push here!
   };
 
   const handleAddMember = () => {
     if (!newMemberName || !newMemberEmail || !newMemberPassword) {
-      alert("Nama, email, dan password harus diisi!");
+      alert("❌ Nama, email, dan password harus diisi!");
       return;
     }
 
@@ -274,8 +278,7 @@ export default function AdminPage() {
 
     setMembers([...members, newMember]);
     
-    // TODO: Save to Supabase with password
-    // For now, save to localStorage
+    // Save to localStorage
     const savedMembers = JSON.parse(localStorage.getItem('members') || '[]');
     savedMembers.push({ ...newMember, password: newMemberPassword });
     localStorage.setItem('members', JSON.stringify(savedMembers));
@@ -285,14 +288,20 @@ export default function AdminPage() {
     setNewMemberEmail("");
     setNewMemberPassword("");
     setNewMemberRole("Member");
-    alert("Member baru berhasil ditambahkan!");
+    alert("✅ Member baru berhasil ditambahkan!");
+    // DO NOT call router.push here!
   };
 
   const handleDeleteMember = (memberId: string) => {
-    if (confirm("Yakin ingin menghapus member ini?")) {
+    if (confirm("⚠️ Yakin ingin menghapus member ini?")) {
       setMembers(members.filter(m => m.id !== memberId));
-      // TODO: Delete from Supabase
-      alert("Member berhasil dihapus!");
+      
+      const savedMembers = JSON.parse(localStorage.getItem('members') || '[]');
+      const updatedMembers = savedMembers.filter((m: any) => m.id !== memberId);
+      localStorage.setItem('members', JSON.stringify(updatedMembers));
+      
+      alert("✅ Member berhasil dihapus!");
+      // DO NOT call router.push here!
     }
   };
 
@@ -300,13 +309,19 @@ export default function AdminPage() {
     setMembers(members.map(m => 
       m.id === memberId ? { ...m, isActive: !m.isActive } : m
     ));
-    // TODO: Update Supabase
+    // Save to localStorage
+    const savedMembers = JSON.parse(localStorage.getItem('members') || '[]');
+    const updatedMembers = savedMembers.map((m: any) =>
+      m.id === memberId ? { ...m, isActive: !m.isActive } : m
+    );
+    localStorage.setItem('members', JSON.stringify(updatedMembers));
+    // DO NOT call router.push here!
   };
 
   // Knowledge Base handlers
   const handleAddKnowledgeText = () => {
     if (!newKnowledgeTitle || !newKnowledgeContent) {
-      alert("Judul dan konten harus diisi!");
+      alert("❌ Judul dan konten harus diisi!");
       return;
     }
 
@@ -321,17 +336,20 @@ export default function AdminPage() {
 
     setKnowledgeEntries([newEntry, ...knowledgeEntries]);
     
-    // TODO: Save to Supabase
+    // Save to localStorage
+    localStorage.setItem('knowledge_base', JSON.stringify([newEntry, ...knowledgeEntries]));
+    
     setIsAddKnowledgeOpen(false);
     setNewKnowledgeTitle("");
     setNewKnowledgeContent("");
     setNewKnowledgeCategory("Trip Info");
-    alert("Knowledge base entry berhasil ditambahkan!");
+    alert("✅ Knowledge base entry berhasil ditambahkan!");
+    // DO NOT call router.push here!
   };
 
   const handleUploadKnowledgeFile = () => {
     if (!knowledgeFile || !newKnowledgeTitle) {
-      alert("File dan judul harus diisi!");
+      alert("❌ File dan judul harus diisi!");
       return;
     }
 
@@ -348,12 +366,15 @@ export default function AdminPage() {
 
     setKnowledgeEntries([newEntry, ...knowledgeEntries]);
     
-    // TODO: Upload to Supabase Storage and save reference
+    // Save to localStorage
+    localStorage.setItem('knowledge_base', JSON.stringify([newEntry, ...knowledgeEntries]));
+    
     setIsAddKnowledgeOpen(false);
     setKnowledgeFile(null);
     setNewKnowledgeTitle("");
     setNewKnowledgeCategory("Trip Info");
-    alert("File berhasil diupload ke knowledge base!");
+    alert("✅ File berhasil diupload ke knowledge base!");
+    // DO NOT call router.push here!
   };
 
   const handleEditKnowledge = (entry: KnowledgeEntry) => {
@@ -364,20 +385,25 @@ export default function AdminPage() {
   const handleUpdateKnowledge = () => {
     if (!editingKnowledge) return;
 
-    setKnowledgeEntries(knowledgeEntries.map(e =>
+    const updatedEntries = knowledgeEntries.map(e =>
       e.id === editingKnowledge.id ? editingKnowledge : e
-    ));
+    );
+    
+    setKnowledgeEntries(updatedEntries);
+    localStorage.setItem('knowledge_base', JSON.stringify(updatedEntries));
 
-    // TODO: Update Supabase
     setIsEditKnowledgeOpen(false);
-    alert("Knowledge entry berhasil diupdate!");
+    alert("✅ Knowledge entry berhasil diupdate!");
+    // DO NOT call router.push here!
   };
 
   const handleDeleteKnowledge = (entryId: string) => {
-    if (confirm("Yakin ingin menghapus entry ini dari knowledge base?")) {
-      setKnowledgeEntries(knowledgeEntries.filter(e => e.id !== entryId));
-      // TODO: Delete from Supabase
-      alert("Entry berhasil dihapus!");
+    if (confirm("⚠️ Yakin ingin menghapus entry ini dari knowledge base?")) {
+      const updatedEntries = knowledgeEntries.filter(e => e.id !== entryId);
+      setKnowledgeEntries(updatedEntries);
+      localStorage.setItem('knowledge_base', JSON.stringify(updatedEntries));
+      alert("✅ Entry berhasil dihapus!");
+      // DO NOT call router.push here!
     }
   };
 

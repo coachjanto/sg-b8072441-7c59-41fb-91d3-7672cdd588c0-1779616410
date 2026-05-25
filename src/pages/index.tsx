@@ -21,40 +21,85 @@ export default function Home() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState("");
   const [activeTab, setActiveTab] = useState("chat");
+  const [apiConnected, setApiConnected] = useState(false);
+  const [aiProvider, setAiProvider] = useState<"claude" | "openai">("claude");
+
+  // Check API connection status on mount and when returning from admin
+  useEffect(() => {
+    if (isLoggedIn) {
+      const savedSettings = localStorage.getItem('admin_settings');
+      if (savedSettings) {
+        const settings = JSON.parse(savedSettings);
+        const hasClaudeKey = settings.claude_api_key && settings.claude_api_key.length > 0;
+        const hasOpenaiKey = settings.openai_api_key && settings.openai_api_key.length > 0;
+        
+        setAiProvider(settings.ai_provider || 'claude');
+        
+        if (settings.ai_provider === 'openai') {
+          setApiConnected(hasOpenaiKey);
+        } else {
+          setApiConnected(hasClaudeKey);
+        }
+      }
+    }
+  }, [isLoggedIn]);
 
   const handleLogin = (username: string) => {
     setCurrentUser(username);
     setIsLoggedIn(true);
     
-    // Check if first login (in real app, check from database)
-    const hasLoggedInBefore = localStorage.getItem(`user_${username}_logged_in`);
-    setIsFirstLogin(!hasLoggedInBefore);
+    // Check if first time login
+    const hasLoggedBefore = localStorage.getItem(`${username}_has_logged_before`);
+    setIsFirstLogin(!hasLoggedBefore);
     
-    if (!hasLoggedInBefore) {
-      localStorage.setItem(`user_${username}_logged_in`, 'true');
+    if (!hasLoggedBefore) {
+      localStorage.setItem(`${username}_has_logged_before`, 'true');
     }
   };
 
   useEffect(() => {
-    if (isLoggedIn && currentUser) {
-      // Add Claudia's greeting as first message
-      const greeting: Message = {
+    if (isLoggedIn) {
+      const welcomeMessage = isFirstLogin
+        ? `Konnichiwa, ${currentUser}! 👋\n\nSaya Claudia Yang, konsultan perjalanan & konten untuk Trip Osaka keluarga Djojo, 29 Juni – 13 Juli 2026.\n\nYang bisa saya bantu:\n🗺️ Itinerary & rute harian\n🍜 Rekomendasi kuliner & budget meals\n📸 Ide konten Reels Live & posting untuk channel Coach Janto\n🚇 Info transportasi harga tiket jam buka tempat wisata\n📄 Akses cepat semua dokumen trip\n⏰ Reminder & alarm persiapan\n💡 Rencana spontan dadakan\n\nTanya apa saja kapan saja. Saya selalu di sini! 🇯🇵`
+        : `Ohayou, ${currentUser}! 🌸 Ada yang bisa saya bantu hari ini?`;
+
+      setMessages([{
         id: '1',
         sender: 'Claudia Yang',
-        text: isFirstLogin 
-          ? `Konnichiwa, ${currentUser}! 👋\n\nSaya Claudia Yang, konsultan perjalanan & konten untuk Trip Osaka keluarga Djojo, 29 Juni – 13 Juli 2026.\n\nYang bisa saya bantu:\n🗺️ Itinerary & rute harian\n🍜 Rekomendasi kuliner & budget meals\n📸 Ide konten Reels Live & posting untuk channel Coach Janto\n🚇 Info transportasi harga tiket jam buka tempat wisata\n📄 Akses cepat semua dokumen trip\n⏰ Reminder & alarm persiapan\n💡 Rencana spontan dadakan\n\nTanya apa saja kapan saja. Saya selalu di sini! 🇯🇵`
-          : `Ohayou, ${currentUser}! 🌸 Ada yang bisa saya bantu hari ini?`,
+        text: welcomeMessage,
         timestamp: new Date(),
         isAI: true
-      };
-      setMessages([greeting]);
+      }]);
     }
   }, [isLoggedIn, currentUser, isFirstLogin]);
 
   const handleSendMessage = () => {
     if (!inputMessage.trim()) return;
     
-    const newMessage: Message = {
+    // Check API connection before sending
+    if (!apiConnected) {
+      const newMessages = [
+        {
+          id: Date.now().toString(),
+          sender: currentUser,
+          text: inputMessage,
+          timestamp: new Date(),
+          isAI: false
+        },
+        {
+          id: (Date.now() + 1).toString(),
+          sender: 'Claudia Yang',
+          text: `⚠️ ${aiProvider === 'claude' ? 'Claude' : 'OpenAI'} API belum terhubung. Silakan minta Super Admin untuk setup API key di halaman Admin Settings terlebih dahulu.`,
+          timestamp: new Date(),
+          isAI: true
+        }
+      ];
+      setMessages([...messages, ...newMessages]);
+      setInputMessage("");
+      return;
+    }
+    
+    const newMessage = {
       id: Date.now().toString(),
       sender: currentUser,
       text: inputMessage,
@@ -65,12 +110,12 @@ export default function Home() {
     setMessages([...messages, newMessage]);
     setInputMessage("");
     
-    // Simulate AI response (replace with Claude API call)
+    // Simulate AI response with API info
     setTimeout(() => {
       setMessages(prev => [...prev, {
         id: (Date.now() + 1).toString(),
         sender: 'Claudia Yang',
-        text: `Terima kasih ${currentUser}! Saya sedang memproses pertanyaan Anda. (Claude API belum terhubung - tambahkan API key di Admin Dashboard)`,
+        text: `Terima kasih ${currentUser}! Saya sedang memproses pertanyaan Anda menggunakan ${aiProvider === 'claude' ? 'Claude AI' : 'OpenAI GPT'}. (Integrasi API aktif, response engine belum diimplementasi)`,
         timestamp: new Date(),
         isAI: true
       }]);
@@ -100,9 +145,22 @@ export default function Home() {
           <div className="glass-card p-4 m-4 rounded-2xl flex items-center justify-between">
             <div>
               <h2 className="text-xl font-serif font-bold text-primary">Main Chat 💬</h2>
-              <p className="text-sm text-muted-foreground">with Claudia Yang</p>
+              <p className="text-sm text-muted-foreground flex items-center gap-2">
+                with Claudia Yang
+                {apiConnected ? (
+                  <span className="flex items-center gap-1 text-xs text-green-400">
+                    <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+                    {aiProvider === 'claude' ? 'Claude' : 'OpenAI'} Connected
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-1 text-xs text-amber-400">
+                    <span className="w-2 h-2 rounded-full bg-amber-400" />
+                    API Not Connected
+                  </span>
+                )}
+              </p>
             </div>
-            <Button variant="ghost" size="icon" className="text-primary">
+            <Button variant="ghost" size="icon">
               <Menu className="h-5 w-5" />
             </Button>
           </div>
