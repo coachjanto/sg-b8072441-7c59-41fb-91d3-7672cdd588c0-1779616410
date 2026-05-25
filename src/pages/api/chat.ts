@@ -35,7 +35,7 @@ export default async function handler(
           'anthropic-version': '2023-06-01'
         },
         body: JSON.stringify({
-          model: model || 'claude-3-5-sonnet-20241022',
+          model: model || 'claude-3-5-sonnet-20240620',
           max_tokens: 1024,
           system: `Kamu adalah Claudia Yang, konsultan AI perjalanan dan konten untuk keluarga Djojo yang akan trip ke Osaka, Jepang dari 29 Juni - 13 Juli 2026. 
 

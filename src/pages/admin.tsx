@@ -75,7 +75,7 @@ export default function AdminPage() {
   const [openaiApiKey, setOpenaiApiKey] = useState("");
   const [showOpenaiKey, setShowOpenaiKey] = useState(false);
   const [aiProvider, setAiProvider] = useState<"claude" | "openai">("claude");
-  const [aiModel, setAiModel] = useState("claude-3-5-sonnet-20241022");
+  const [aiModel, setAiModel] = useState("claude-3-5-sonnet-20240620");
   const [googleDriveKey, setGoogleDriveKey] = useState("");
   const [showGoogleKey, setShowGoogleKey] = useState(false);
   const [securityPin, setSecurityPin] = useState("");
@@ -128,7 +128,7 @@ export default function AdminPage() {
       setAiProvider(settings.ai_provider || 'claude');
       setClaudeApiKey(settings.claude_api_key || '');
       setOpenaiApiKey(settings.openai_api_key || '');
-      setAiModel(settings.ai_model || 'claude-3-5-sonnet-20241022');
+      setAiModel(settings.ai_model || 'claude-3-5-sonnet-20240620');
       setGoogleDriveKey(settings.google_drive_key || '');
     }
 
@@ -408,8 +408,8 @@ export default function AdminPage() {
   };
 
   const claudeModels = [
-    { value: "claude-3-5-sonnet-20241022", label: "Claude 3.5 Sonnet (Recommended)" },
-    { value: "claude-3-5-haiku-20241022", label: "Claude 3.5 Haiku (Fast & Affordable)" },
+    { value: "claude-3-5-sonnet-20240620", label: "Claude 3.5 Sonnet (Recommended)" },
+    { value: "claude-3-haiku-20240307", label: "Claude 3 Haiku (Fast & Affordable)" },
     { value: "claude-3-opus-20240229", label: "Claude 3 Opus (Most Capable)" },
   ];
 
@@ -423,7 +423,7 @@ export default function AdminPage() {
   const handleAiProviderChange = (provider: "claude" | "openai") => {
     setAiProvider(provider);
     if (provider === "claude") {
-      setAiModel("claude-3-5-sonnet-20241022");
+      setAiModel("claude-3-5-sonnet-20240620");
     } else {
       setAiModel("gpt-4o");
     }
