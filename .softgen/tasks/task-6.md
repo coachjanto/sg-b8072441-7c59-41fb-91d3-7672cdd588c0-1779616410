@@ -18,7 +18,8 @@ Super Admin dashboard accessible only to coach.janto@gmail.com for system-wide c
 - [x] Create admin page route /admin with access control (only coach.janto@gmail.com)
 - [x] Update users table with email field and super_admin boolean flag
 - [x] Build tabbed interface with 7 sections: API Keys, Knowledge Base, Security, Budget, Members, Appearance, Notifications
-- [x] API Keys tab: input fields for Claude API key and Google Drive API credentials with save functionality
+- [x] AI Provider selection: choose between Claude or OpenAI with model selector
+- [x] API Keys tab: input fields for Claude/OpenAI API keys (conditional based on provider) and Google Drive API credentials
 - [x] Knowledge Base tab: add text prompts or upload files for Claudia Yang's AI context with 10 categories
 - [x] Edit and delete knowledge base entries with modal dialogs
 - [x] Security tab: set 6-digit PIN for sensitive data protection (separate from login password)
@@ -34,6 +35,7 @@ Super Admin dashboard accessible only to coach.janto@gmail.com for system-wide c
 
 ## Acceptance
 - Admin page only accessible to coach.janto@gmail.com
+- AI provider can be selected between Claude or OpenAI with appropriate model options
 - API keys save successfully and encrypt sensitive data
 - Knowledge base entries can be added (text/file), edited, and deleted
 - PIN protection works for passport/booking data access
