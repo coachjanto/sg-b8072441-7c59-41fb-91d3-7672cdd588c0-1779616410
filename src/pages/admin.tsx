@@ -637,16 +637,16 @@ export default function AdminPage() {
                             </div>
                             <div className="space-y-2">
                               <Label htmlFor="kb-category">Category</Label>
-                              <Select value={newKnowledgeCategory} onValueChange={setNewKnowledgeCategory}>
-                                <SelectTrigger className="bg-background/50">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent className="glass-card">
-                                  {knowledgeCategories.map(cat => (
-                                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
+                              <Input
+                                id="kb-category"
+                                value={newKnowledgeCategory}
+                                onChange={(e) => setNewKnowledgeCategory(e.target.value)}
+                                placeholder="e.g., Kuliner, Itinerary, Budget, etc."
+                                className="bg-background/50"
+                              />
+                              <p className="text-xs text-muted-foreground">
+                                Suggested: Trip Info, Itinerary, Budget, Kuliner, Content Strategy, Transportation
+                              </p>
                             </div>
                             <div className="space-y-2">
                               <Label htmlFor="kb-content">Content</Label>
@@ -678,16 +678,16 @@ export default function AdminPage() {
                             </div>
                             <div className="space-y-2">
                               <Label htmlFor="kb-file-category">Category</Label>
-                              <Select value={newKnowledgeCategory} onValueChange={setNewKnowledgeCategory}>
-                                <SelectTrigger className="bg-background/50">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent className="glass-card">
-                                  {knowledgeCategories.map(cat => (
-                                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
+                              <Input
+                                id="kb-file-category"
+                                value={newKnowledgeCategory}
+                                onChange={(e) => setNewKnowledgeCategory(e.target.value)}
+                                placeholder="e.g., Documents, Tickets, Accommodation, etc."
+                                className="bg-background/50"
+                              />
+                              <p className="text-xs text-muted-foreground">
+                                Suggested: Documents, Tickets, Accommodation, Emergency Info, Travel Tips
+                              </p>
                             </div>
                             <div className="space-y-2">
                               <Label htmlFor="kb-file">Upload File</Label>
@@ -808,19 +808,13 @@ export default function AdminPage() {
                           </div>
                           <div className="space-y-2">
                             <Label htmlFor="edit-kb-category">Category</Label>
-                            <Select 
-                              value={editingKnowledge.category} 
-                              onValueChange={(value) => setEditingKnowledge({ ...editingKnowledge, category: value })}
-                            >
-                              <SelectTrigger className="bg-background/50">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent className="glass-card">
-                                {knowledgeCategories.map(cat => (
-                                  <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                            <Input
+                              id="edit-kb-category"
+                              value={editingKnowledge.category}
+                              onChange={(e) => setEditingKnowledge({ ...editingKnowledge, category: e.target.value })}
+                              placeholder="e.g., Kuliner, Itinerary, Budget, etc."
+                              className="bg-background/50"
+                            />
                           </div>
                           <div className="space-y-2">
                             <Label htmlFor="edit-kb-content">Content</Label>
