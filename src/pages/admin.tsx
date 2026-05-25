@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Layout } from "@/components/Layout";
 import { SEO } from "@/components/SEO";
 import { Button } from "@/components/ui/button";
@@ -119,6 +119,26 @@ export default function AdminPage() {
   const [knowledgeFile, setKnowledgeFile] = useState<File | null>(null);
   const [editingKnowledge, setEditingKnowledge] = useState<KnowledgeEntry | null>(null);
   const [isEditKnowledgeOpen, setIsEditKnowledgeOpen] = useState(false);
+
+  // Load saved settings on mount
+  useEffect(() => {
+    const savedSettings = localStorage.getItem('admin_settings');
+    if (savedSettings) {
+      const settings = JSON.parse(savedSettings);
+      setAiProvider(settings.ai_provider || 'claude');
+      setClaudeApiKey(settings.claude_api_key || '');
+      setOpenaiApiKey(settings.openai_api_key || '');
+      setAiModel(settings.ai_model || 'claude-3-5-sonnet-20241022');
+      setGoogleDriveKey(settings.google_drive_key || '');
+    }
+
+    const savedBudget = localStorage.getItem('budget_settings');
+    if (savedBudget) {
+      const budget = JSON.parse(savedBudget);
+      setTotalBudget(budget.total_budget || '');
+      setPerPaxBilling(budget.per_pax_billing || false);
+    }
+  }, []);
 
   const knowledgeCategories = [
     "Trip Info",
