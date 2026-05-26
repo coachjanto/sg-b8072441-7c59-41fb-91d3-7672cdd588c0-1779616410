@@ -199,33 +199,32 @@ export default function AdminPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          message: 'Test connection',
+          message: 'Test connection - respond with "OK"',
           provider: aiProvider,
-          apiKey: apiKey,
+          apiKey: apiKey.trim(),
           model: aiModel,
-          currentUser: 'Admin',
+          currentUser: 'Admin Test',
           knowledgeContext: '',
           conversationHistory: []
         })
       });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Connection test failed');
-      }
-
       const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || `HTTP ${response.status}: ${response.statusText}`);
+      }
       
       setTestResult({
         success: true,
-        message: `✅ ${aiProvider === 'claude' ? 'Claude' : 'OpenAI'} API key valid! Connection successful.\n\nModel: ${aiModel}\nResponse: ${data.response.substring(0, 100)}...`
+        message: `✅ ${aiProvider === 'claude' ? 'Claude' : 'OpenAI'} API key valid! Connection successful.\n\nModel: ${aiModel}\nResponse received: ${data.response.substring(0, 100)}...`
       });
       
     } catch (error: any) {
       console.error('Test connection error:', error);
       setTestResult({
         success: false,
-        message: `❌ Connection failed: ${error.message}\n\nPastikan API key benar dan memiliki credit/quota.`
+        message: `❌ Connection failed: ${error.message}\n\nTroubleshooting:\n• Pastikan API key benar (copy ulang dari console)\n• Pastikan API key memiliki credit/quota\n• Check logs di browser console (F12) untuk detail`
       });
     } finally {
       setIsTestingConnection(false);
