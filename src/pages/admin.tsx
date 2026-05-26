@@ -894,12 +894,12 @@ export default function AdminPage() {
                               <Input
                                 id="kb-file"
                                 type="file"
-                                accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"
+                                accept=".pdf,.doc,.docx,.txt,.md,.jpg,.jpeg,.png"
                                 onChange={(e) => setKnowledgeFile(e.target.files?.[0] || null)}
                                 className="bg-background/50"
                               />
                               <p className="text-xs text-muted-foreground">
-                                Supported: PDF, DOC, DOCX, TXT, JPG, PNG
+                                Supported: PDF, DOC, DOCX, TXT, MD, JPG, PNG
                               </p>
                             </div>
                             {knowledgeFile && (
