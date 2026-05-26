@@ -12,6 +12,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ error: 'Missing required fields: message, provider, apiKey' });
   }
 
+  // Trim and sanitize API key
+  const sanitizedApiKey = apiKey.trim();
+  
+  console.log('API Request:', {
+    provider,
+    model,
+    currentUser,
+    apiKeyLength: sanitizedApiKey.length,
+    apiKeyPrefix: sanitizedApiKey.substring(0, 10) + '...',
+  });
+
   try {
     let aiResponse = '';
 
@@ -26,7 +37,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-api-key': apiKey,
+          'x-api-key': sanitizedApiKey,
           'anthropic-version': '2023-06-01'
         },
         body: JSON.stringify({
@@ -56,8 +67,11 @@ Jawab dengan spesifik, personal, dan action-oriented.`,
 
       if (!claudeResponse.ok) {
         const errorData = await claudeResponse.json();
-        console.error('Claude API Error:', errorData);
-        throw new Error(errorData.error?.message || `Claude API error: ${claudeResponse.status}`);
+        console.error('Claude API Error:', {
+          status: claudeResponse.status,
+          error: errorData
+        });
+        throw new Error(errorData.error?.message || `Claude API error: ${claudeResponse.status} - ${JSON.stringify(errorData)}`);
       }
 
       const data = await claudeResponse.json();
@@ -95,7 +109,7 @@ Jawab dengan spesifik, personal, dan action-oriented.`
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`
+          'Authorization': `Bearer ${sanitizedApiKey}`
         },
         body: JSON.stringify({
           model: model || 'gpt-4o',
@@ -107,8 +121,11 @@ Jawab dengan spesifik, personal, dan action-oriented.`
 
       if (!openaiResponse.ok) {
         const errorData = await openaiResponse.json();
-        console.error('OpenAI API Error:', errorData);
-        throw new Error(errorData.error?.message || `OpenAI API error: ${openaiResponse.status}`);
+        console.error('OpenAI API Error:', {
+          status: openaiResponse.status,
+          error: errorData
+        });
+        throw new Error(errorData.error?.message || `OpenAI API error: ${openaiResponse.status} - ${JSON.stringify(errorData)}`);
       }
 
       const data = await openaiResponse.json();
@@ -117,6 +134,11 @@ Jawab dengan spesifik, personal, dan action-oriented.`
     } else {
       throw new Error('Invalid provider. Must be "claude" or "openai"');
     }
+
+    console.log('API Response success:', {
+      provider,
+      responseLength: aiResponse.length
+    });
 
     return res.status(200).json({ response: aiResponse });
 
