@@ -1,0 +1,635 @@
+{
+  "project_name": "Japan2026 - Osaka Trip Companion",
+  "description": "Mobile-first AI travel companion app for Djojo family Osaka trip (June 29 - July 13, 2026). Features Claudia Yang AI consultant powered by Claude/OpenAI, glassmorphism design with Japanese aesthetic, expense tracking, document vault, souvenir wishlist, and media gallery.",
+  
+  "tech_stack": {
+    "framework": "Next.js 15 (Page Router)",
+    "language": "TypeScript",
+    "styling": "Tailwind CSS 3.4 + shadcn/ui components",
+    "database": "Supabase (PostgreSQL + RLS)",
+    "ai": "Claude API / OpenAI API (configurable)",
+    "storage": "Supabase Storage + Google Drive API integration",
+    "icons": "Lucide React",
+    "fonts": {
+      "display": "Noto Serif JP (Japanese headers)",
+      "body": "DM Sans (readable body text)",
+      "data": "JetBrains Mono (tabular numbers)"
+    }
+  },
+
+  "design_system": {
+    "style_direction": "Glassmorphism Modern Japanese",
+    "color_palette": {
+      "background_dark": "225 50% 8% (Deep navy #0a0f1e)",
+      "background_light": "210 40% 98%",
+      "foreground_dark": "224 100% 97% (Off-white #f0f4ff)",
+      "foreground_light": "225 50% 12%",
+      "primary": "47 78% 59% (Gold #e8c547)",
+      "secondary": "199 91% 64% (Ice blue #4fc3f7)",
+      "accent": "340 100% 71% (Sakura pink #ff6b9d)",
+      "muted_dark": "225 30% 20% (Dark glass panels)",
+      "muted_light": "210 30% 96%"
+    },
+    "visual_elements": [
+      "Animated gradient mesh background (can be replaced with custom upload)",
+      "Torii gate silhouette (3% opacity, SVG)",
+      "Sakura petal floating particles (CSS animation)",
+      "Glass effect cards (backdrop-blur-md, semi-transparent backgrounds)",
+      "Light/dark theme toggle (top-right)"
+    ],
+    "layout": {
+      "format": "Mobile-first 9:16 adaptive layout",
+      "container": "Full-width with max-w-4xl centered content",
+      "spacing_scale": "4px base (gap-1 to gap-8)",
+      "border_radius": "rounded-xl (12px) for cards, rounded-2xl (16px) for containers"
+    }
+  },
+
+  "user_roles": {
+    "super_admin": {
+      "name": "Janto Djojo",
+      "email": "coach.janto@gmail.com",
+      "password": "1100110011",
+      "permissions": [
+        "Full access to Admin Dashboard",
+        "API key management",
+        "Knowledge base management",
+        "Member management",
+        "Security PIN setup",
+        "Budget configuration",
+        "Appearance customization",
+        "Thread approval"
+      ]
+    },
+    "members": [
+      {
+        "name": "Yina Djojo",
+        "email": "yina@gmail.com",
+        "role": "Member"
+      },
+      {
+        "name": "Pauline Djojo",
+        "email": "pauline@gmail.com",
+        "role": "Member"
+      },
+      {
+        "name": "Clement Djojo",
+        "email": "clement@gmail.com",
+        "role": "Member"
+      }
+    ],
+    "guest_mode": {
+      "access": "Read-only",
+      "restrictions": "Cannot view finances, sensitive documents, or admin settings"
+    }
+  },
+
+  "ai_consultant": {
+    "name": "Claudia Yang",
+    "persona": "AI travel & content consultant for Djojo family Osaka trip",
+    "language": "Bahasa Indonesia (natural, friendly tone)",
+    "capabilities": [
+      "Itinerary planning & route optimization",
+      "Restaurant recommendations & budget meals",
+      "Content strategy for Coach Janto's channel (Reels, posts)",
+      "Transportation info (prices, schedules, routes)",
+      "Attraction details (ticket prices, opening hours)",
+      "Trip reminders & milestone alerts",
+      "Spontaneous plan suggestions"
+    ],
+    "context_sources": [
+      "Knowledge Base entries (text + uploaded files)",
+      "Conversation history (last 5 messages)",
+      "Current user name",
+      "Trip dates (June 29 - July 13, 2026)"
+    ],
+    "api_configuration": {
+      "providers": ["claude", "openai"],
+      "default_provider": "claude",
+      "claude_models": [
+        "claude-3-5-sonnet-20240620 (Recommended)",
+        "claude-3-haiku-20240307 (Fast & Affordable)",
+        "claude-3-opus-20240229 (Most Capable)"
+      ],
+      "openai_models": [
+        "gpt-4o (Recommended)",
+        "gpt-4o-mini (Fast & Affordable)",
+        "gpt-4-turbo",
+        "gpt-3.5-turbo (Budget)"
+      ],
+      "validation": {
+        "claude_key_format": "Must start with sk-ant-api",
+        "openai_key_format": "Must start with sk-"
+      }
+    }
+  },
+
+  "core_features": {
+    "chat_interface": {
+      "description": "Real-time chat with Claudia Yang AI consultant",
+      "implementation": [
+        "Message history with sender name + timestamp",
+        "User messages (right-aligned, primary bg)",
+        "AI messages (left-aligned, glass card bg)",
+        "Avatar display (Claudia photo for AI, user initial for members)",
+        "Auto-scroll to latest message",
+        "Enter to send, Shift+Enter for newline",
+        "Loading state with animated dots",
+        "Error handling with Indonesian error messages"
+      ],
+      "api_route": "/api/chat (POST)",
+      "request_payload": {
+        "message": "User input text",
+        "provider": "claude | openai",
+        "apiKey": "Trimmed API key",
+        "model": "Model ID (cleaned from display text)",
+        "currentUser": "Username",
+        "knowledgeContext": "Concatenated knowledge base entries",
+        "conversationHistory": "Last 5 messages array"
+      }
+    },
+
+    "knowledge_base": {
+      "description": "Admin-managed context repository for Claudia Yang",
+      "entry_types": [
+        {
+          "type": "text",
+          "fields": ["title", "content", "category"],
+          "use_case": "Trip info, itinerary details, restaurant lists, tips"
+        },
+        {
+          "type": "file",
+          "supported_formats": [".pdf", ".doc", ".docx", ".txt", ".md", ".jpg", ".png"],
+          "fields": ["title", "fileName", "fileUrl", "category"],
+          "use_case": "Flight tickets, booking confirmations, maps, menus"
+        }
+      ],
+      "categories": [
+        "Trip Info",
+        "Itinerary",
+        "Budget & Finance",
+        "Content Strategy",
+        "Travel Tips",
+        "Restaurant List",
+        "Transportation",
+        "Accommodation",
+        "Emergency Info",
+        "Other"
+      ],
+      "storage": "localStorage (key: knowledge_base)",
+      "format": "JSON array with id, title, content, category, type, createdAt"
+    },
+
+    "expense_tracker": {
+      "status": "Placeholder (to be implemented)",
+      "planned_features": [
+        "Multi-currency logging (JPY ↔ IDR conversion)",
+        "Receipt photo upload",
+        "GPS location tagging",
+        "Category breakdown (Food, Transport, Shopping, etc.)",
+        "Shared expense splitting",
+        "Budget vs actual comparison",
+        "Per-member spending analysis",
+        "PDF/Excel export"
+      ]
+    },
+
+    "document_vault": {
+      "status": "Placeholder (to be implemented)",
+      "planned_features": [
+        "Centralized storage for passports, flights, bookings",
+        "PIN-protected sensitive data",
+        "Quick access with search/filter",
+        "PDF viewer integration",
+        "Share selected docs with guest users"
+      ]
+    },
+
+    "souvenir_wishlist": {
+      "status": "Placeholder (to be implemented)",
+      "planned_features": [
+        "Request tracking with status (pending/bought/delivered)",
+        "Price comparison across stores",
+        "Proof photos when purchased",
+        "Member-specific wishlists",
+        "Budget allocation per item"
+      ]
+    },
+
+    "media_gallery": {
+      "status": "Placeholder (to be implemented)",
+      "planned_features": [
+        "Google Drive integration",
+        "GPS metadata for photos",
+        "Auto-organize by date/location",
+        "Album creation",
+        "Share to social media",
+        "Download all as ZIP"
+      ]
+    }
+  },
+
+  "admin_dashboard": {
+    "access": "Super Admin only",
+    "tabs": [
+      {
+        "id": "api-keys",
+        "title": "API Configuration",
+        "features": [
+          "AI Provider selection (Claude / OpenAI)",
+          "Model dropdown (filtered by provider)",
+          "API key input with show/hide toggle",
+          "Google Drive API key (optional)",
+          "Format validation before save",
+          "Test Connection button with detailed results",
+          "Save to localStorage (admin_settings)"
+        ]
+      },
+      {
+        "id": "knowledge",
+        "title": "AI Knowledge Base",
+        "features": [
+          "Add text entry dialog (title, category, content)",
+          "Upload file dialog (title, category, file picker)",
+          "Entry list with category badges",
+          "Edit text entries",
+          "Delete entries with confirmation",
+          "Search/filter by category (future)",
+          "Save to localStorage (knowledge_base)"
+        ]
+      },
+      {
+        "id": "security",
+        "title": "Security Settings",
+        "features": [
+          "6-digit PIN input",
+          "Confirm PIN validation",
+          "Save to localStorage (security_pin)",
+          "Use PIN for document vault access"
+        ]
+      },
+      {
+        "id": "budget",
+        "title": "Budget Configuration",
+        "features": [
+          "Total trip budget input (JPY)",
+          "Per-pax billing toggle",
+          "Save to localStorage (budget_settings)"
+        ]
+      },
+      {
+        "id": "members",
+        "title": "Member Management",
+        "features": [
+          "Member list with role badges",
+          "Add member dialog (name, email, password, role)",
+          "Edit member dialog (update profile + password)",
+          "Delete member with confirmation",
+          "Toggle active/inactive status",
+          "Super Admin cannot be deleted or deactivated",
+          "Save to localStorage (members)"
+        ]
+      },
+      {
+        "id": "appearance",
+        "title": "Style Settings",
+        "features": [
+          "Upload custom background image",
+          "Auto-compress to 1280x720 max, JPEG 60% quality",
+          "Preview before save",
+          "Save to localStorage (app_background) as base64",
+          "Apply as overlay in Layout.tsx (opacity 30%)"
+        ]
+      },
+      {
+        "id": "notifications",
+        "title": "Notification Preferences",
+        "status": "Coming soon placeholder"
+      }
+    ]
+  },
+
+  "navigation": {
+    "bottom_nav": {
+      "position": "Sticky bottom, full width",
+      "style": "Glass effect with backdrop-blur-xl",
+      "items": [
+        {
+          "id": "chat",
+          "icon": "MessageCircle",
+          "label": "Chat",
+          "route": "/ (active by default)"
+        },
+        {
+          "id": "docs",
+          "icon": "FileText",
+          "label": "Docs",
+          "status": "Placeholder"
+        },
+        {
+          "id": "expense",
+          "icon": "Coins",
+          "label": "Expense",
+          "status": "Placeholder"
+        },
+        {
+          "id": "souvenir",
+          "icon": "Gift",
+          "label": "Souvenir",
+          "status": "Placeholder"
+        },
+        {
+          "id": "gallery",
+          "icon": "Image",
+          "label": "Gallery",
+          "status": "Placeholder"
+        },
+        {
+          "id": "admin",
+          "icon": "Settings",
+          "label": "Admin",
+          "route": "/admin"
+        }
+      ],
+      "responsive": {
+        "mobile": "Vertical layout, larger icons, smaller text",
+        "tablet_plus": "Horizontal layout, normal size"
+      }
+    },
+    "theme_toggle": {
+      "position": "Fixed top-right",
+      "component": "ThemeSwitch with sun/moon icons"
+    }
+  },
+
+  "authentication": {
+    "type": "Simple localStorage-based (no Supabase Auth yet)",
+    "flow": [
+      "1. User enters username on LoginScreen",
+      "2. Match against predefined members array",
+      "3. Save session to localStorage (user_session)",
+      "4. Show personalized welcome from Claudia Yang",
+      "5. First login gets extended intro, subsequent logins get short greeting"
+    ],
+    "stored_data": {
+      "user_session": "{ username: string }",
+      "members": "Array of { id, name, email, role, isActive, password }",
+      "[username]_has_logged_before": "boolean flag"
+    },
+    "logout": "Clear user_session from localStorage, redirect to LoginScreen"
+  },
+
+  "api_routes": {
+    "/api/chat": {
+      "method": "POST",
+      "description": "Proxy for Claude/OpenAI API calls",
+      "request_body": {
+        "message": "string",
+        "provider": "claude | openai",
+        "apiKey": "string (trimmed)",
+        "model": "string (model ID)",
+        "currentUser": "string",
+        "knowledgeContext": "string (formatted knowledge entries)",
+        "conversationHistory": "array of { role, content }"
+      },
+      "response": {
+        "success": "{ response: string }",
+        "error": "{ error: string } with Indonesian error messages"
+      },
+      "error_handling": {
+        "401": "API key tidak valid atau expired",
+        "429": "Rate limit terlampaui atau quota habis",
+        "400": "Format request tidak valid"
+      }
+    },
+    "/api/hello": {
+      "method": "GET",
+      "description": "Health check endpoint",
+      "response": "{ name: 'John Doe' }"
+    }
+  },
+
+  "data_persistence": {
+    "storage_method": "localStorage (client-side only)",
+    "keys": {
+      "user_session": "Current logged-in user",
+      "admin_settings": "AI provider, API keys, model selection",
+      "knowledge_base": "Array of knowledge entries",
+      "budget_settings": "Total budget, per-pax billing flag",
+      "security_pin": "6-digit PIN for sensitive data",
+      "members": "Array of member profiles with passwords",
+      "app_background": "Base64-encoded custom background image",
+      "[username]_has_logged_before": "First login tracker"
+    },
+    "future_migration": "Migrate to Supabase for persistence, auth, realtime, and multi-device sync"
+  },
+
+  "responsive_design": {
+    "breakpoints": {
+      "sm": "640px (tablet)",
+      "md": "768px (tablet landscape)",
+      "lg": "1024px (desktop)"
+    },
+    "mobile_optimizations": [
+      "Touch-friendly button sizes (min 44x44px)",
+      "Vertical nav layout on mobile",
+      "Single column admin tabs grid on mobile",
+      "Compressed spacing on small screens",
+      "Safe area padding for notched devices"
+    ]
+  },
+
+  "file_structure": {
+    "src/pages/": {
+      "index.tsx": "Main chat interface with Claudia Yang",
+      "admin.tsx": "Super Admin dashboard with 7 tabs",
+      "_app.tsx": "Next.js app wrapper",
+      "_document.tsx": "Custom HTML document with SEO meta tags",
+      "404.tsx": "Custom 404 error page"
+    },
+    "src/pages/api/": {
+      "chat.ts": "AI API proxy route (Claude/OpenAI)",
+      "hello.ts": "Health check endpoint"
+    },
+    "src/components/": {
+      "Layout.tsx": "Background effects + theme toggle wrapper",
+      "LoginScreen.tsx": "Username input with member selection",
+      "SEO.tsx": "Meta tags component (SEOElements + SEO)",
+      "ThemeSwitch.tsx": "Light/dark theme toggle"
+    },
+    "src/components/ui/": {
+      "description": "shadcn/ui components (pre-installed)",
+      "components": [
+        "button.tsx", "input.tsx", "textarea.tsx", "card.tsx", 
+        "dialog.tsx", "tabs.tsx", "badge.tsx", "switch.tsx",
+        "select.tsx", "scroll-area.tsx", "avatar.tsx", "alert.tsx",
+        "toast.tsx", "and 30+ more..."
+      ]
+    },
+    "src/styles/": {
+      "globals.css": "Tailwind directives + custom CSS variables + animations"
+    },
+    "src/lib/": {
+      "utils.ts": "cn() utility for className merging"
+    },
+    "src/integrations/supabase/": {
+      "client.ts": "Supabase client instance",
+      "types.ts": "Database type exports",
+      "database.types.ts": "Auto-generated Supabase types"
+    },
+    ".softgen/": {
+      "project.md": "Project brief with vision, design system, features",
+      "tasks/": "Task management markdown files (task-1.md, task-2.md, etc.)"
+    },
+    "public/": {
+      "20240410_120945_1_.jpg": "Claudia Yang avatar photo",
+      "favicon.ico": "Site favicon",
+      "og-image.png": "Open Graph preview image"
+    }
+  },
+
+  "deployment": {
+    "platform": "Vercel (1-click deploy from Softgen)",
+    "environment_variables": {
+      "NEXT_PUBLIC_SUPABASE_URL": "Supabase project URL",
+      "NEXT_PUBLIC_SUPABASE_ANON_KEY": "Supabase anon key",
+      "SUPABASE_SERVICE_ROLE_KEY": "Supabase service role key (server-side only)"
+    },
+    "build_command": "npm run build",
+    "output_directory": ".next"
+  },
+
+  "future_roadmap": [
+    {
+      "phase": "Phase 1 - MVP",
+      "status": "CURRENT",
+      "features": [
+        "✅ Chat with Claudia Yang AI",
+        "✅ Admin dashboard (API, Knowledge, Security, Budget, Members, Appearance)",
+        "✅ Knowledge base management",
+        "✅ Custom background upload",
+        "✅ Light/dark theme",
+        "⏳ Expense tracker implementation",
+        "⏳ Document vault implementation",
+        "⏳ Souvenir wishlist implementation",
+        "⏳ Media gallery implementation"
+      ]
+    },
+    {
+      "phase": "Phase 2 - Supabase Integration",
+      "features": [
+        "Migrate auth to Supabase Auth",
+        "Replace localStorage with Supabase Database",
+        "Enable realtime chat sync across devices",
+        "Implement Supabase Storage for files",
+        "Add RLS policies for member permissions",
+        "Enable guest user invites"
+      ]
+    },
+    {
+      "phase": "Phase 3 - Advanced Features",
+      "features": [
+        "Push notifications & alarms",
+        "Offline mode with service worker",
+        "Photo GPS metadata extraction",
+        "Currency exchange rate API integration",
+        "PDF/Excel export for expenses",
+        "Google Drive auto-sync"
+      ]
+    },
+    {
+      "phase": "Phase 4 - White-Label SaaS",
+      "features": [
+        "Multi-tenant architecture",
+        "Custom branding per group",
+        "Configurable AI persona",
+        "Subscription billing",
+        "Admin analytics dashboard",
+        "Public trip sharing"
+      ]
+    }
+  ],
+
+  "rebuild_instructions": {
+    "step_1": "Clone template with Next.js 15 Page Router + TypeScript + Tailwind",
+    "step_2": "Install dependencies: shadcn/ui, lucide-react, Supabase client",
+    "step_3": "Set up design system in globals.css (color variables, fonts, animations)",
+    "step_4": "Create Layout.tsx with background effects (gradient mesh, torii gate, sakura petals)",
+    "step_5": "Build LoginScreen.tsx with member selection",
+    "step_6": "Implement index.tsx chat interface with message history",
+    "step_7": "Create /api/chat.ts proxy route for Claude/OpenAI",
+    "step_8": "Build admin.tsx with 7 tabs (API, Knowledge, Security, Budget, Members, Appearance, Notifications)",
+    "step_9": "Add localStorage persistence for all settings",
+    "step_10": "Implement background upload with image compression",
+    "step_11": "Add bottom navigation with active state",
+    "step_12": "Create placeholder pages for Docs, Expense, Souvenir, Gallery",
+    "step_13": "Test all flows: login, chat, admin settings, knowledge base, appearance",
+    "step_14": "Deploy to Vercel"
+  },
+
+  "key_files_to_copy": [
+    "src/pages/index.tsx (427 lines) - Main chat interface",
+    "src/pages/admin.tsx (1510 lines) - Admin dashboard",
+    "src/pages/api/chat.ts (173 lines) - AI API proxy",
+    "src/components/Layout.tsx (65 lines) - Background wrapper",
+    "src/components/LoginScreen.tsx (101 lines) - Auth screen",
+    "src/styles/globals.css (210 lines) - Design system",
+    "tailwind.config.ts (113 lines) - Tailwind config with fonts",
+    ".softgen/project.md (31 lines) - Project brief"
+  ],
+
+  "testing_checklist": [
+    "✓ Login as each member (Janto, Yina, Pauline, Clement)",
+    "✓ Send message to Claudia Yang and receive AI response",
+    "✓ Test API connection with Claude and OpenAI",
+    "✓ Add knowledge base entry (text + file upload)",
+    "✓ Edit and delete knowledge entries",
+    "✓ Set security PIN",
+    "✓ Configure budget settings",
+    "✓ Add/edit/delete member profiles",
+    "✓ Upload custom background image and verify compression",
+    "✓ Toggle light/dark theme",
+    "✓ Test responsive layout on mobile, tablet, desktop",
+    "✓ Verify localStorage persistence across page reloads",
+    "✓ Test error handling (invalid API key, network errors)",
+    "✓ Verify Indonesian error messages display correctly"
+  ],
+
+  "known_issues": [
+    "Model dropdown shows display text with parentheses - sanitization now strips before API call",
+    "Background upload was slow - now compressed to max 1280x720 JPEG 60%",
+    "Chat container was constrained - now full width with centered max-w-4xl content",
+    "Bottom nav was not full width - now stretches edge-to-edge with centered items"
+  ],
+
+  "environment_setup": {
+    "required_api_keys": {
+      "claude_api_key": {
+        "source": "https://console.anthropic.com/",
+        "format": "sk-ant-api03-...",
+        "validation": "Must start with 'sk-ant-api'",
+        "purpose": "AI chat with Claudia Yang"
+      },
+      "openai_api_key": {
+        "source": "https://platform.openai.com/api-keys",
+        "format": "sk-proj-... or sk-...",
+        "validation": "Must start with 'sk-'",
+        "purpose": "Alternative AI provider"
+      },
+      "google_drive_api_key": {
+        "source": "https://console.cloud.google.com/",
+        "format": "AIza...",
+        "purpose": "Photo/document storage integration",
+        "status": "Optional"
+      }
+    }
+  },
+
+  "build_command_reference": {
+    "development": "npm run dev",
+    "production_build": "npm run build",
+    "start_production": "npm start",
+    "lint": "npm run lint",
+    "type_check": "npx tsc --noEmit"
+  }
+}
