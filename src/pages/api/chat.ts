@@ -12,30 +12,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ error: 'Missing required fields: message, provider, apiKey' });
   }
 
-  // Aggressive sanitization - remove ALL whitespace including newlines, tabs, spaces
-  const sanitizedApiKey = apiKey.replace(/\s+/g, '').trim();
+  // Simple trim only - no aggressive sanitization
+  const cleanApiKey = apiKey.trim();
   
-  // Validate API key format
-  if (provider === 'claude') {
-    if (!sanitizedApiKey.startsWith('sk-ant-api')) {
-      return res.status(400).json({ 
-        error: 'Invalid Claude API key format. Key must start with "sk-ant-api"' 
-      });
-    }
-  } else if (provider === 'openai') {
-    if (!sanitizedApiKey.startsWith('sk-')) {
-      return res.status(400).json({ 
-        error: 'Invalid OpenAI API key format. Key must start with "sk-"' 
-      });
-    }
-  }
-  
-  console.log('API Request:', {
+  console.log('API Request Debug:', {
     provider,
     model,
     currentUser,
-    apiKeyLength: sanitizedApiKey.length,
-    apiKeyPrefix: sanitizedApiKey.substring(0, 15) + '...',
+    apiKeyLength: cleanApiKey.length,
+    apiKeyStart: cleanApiKey.substring(0, 20) + '...',
+    apiKeyEnd: '...' + cleanApiKey.substring(cleanApiKey.length - 10),
   });
 
   try {
@@ -52,7 +38,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-api-key': sanitizedApiKey,
+          'x-api-key': cleanApiKey,
           'anthropic-version': '2023-06-01'
         },
         body: JSON.stringify({
@@ -88,7 +74,6 @@ Jawab dengan spesifik, personal, dan action-oriented.`,
           error: errorData
         });
         
-        // Provide helpful error messages
         let errorMessage = errorData.error?.message || `Claude API error: ${claudeResponse.status}`;
         
         if (claudeResponse.status === 401) {
@@ -137,7 +122,7 @@ Jawab dengan spesifik, personal, dan action-oriented.`
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${sanitizedApiKey}`
+          'Authorization': `Bearer ${cleanApiKey}`
         },
         body: JSON.stringify({
           model: model || 'gpt-4o',
@@ -155,7 +140,6 @@ Jawab dengan spesifik, personal, dan action-oriented.`
           error: errorData
         });
         
-        // Provide helpful error messages
         let errorMessage = errorData.error?.message || `OpenAI API error: ${openaiResponse.status}`;
         
         if (openaiResponse.status === 401) {
