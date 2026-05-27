@@ -3,9 +3,14 @@ import { Layout } from "@/components/Layout";
 import { LoginScreen } from "@/components/LoginScreen";
 import { SEO } from "@/components/SEO";
 import { Button } from "@/components/ui/button";
-import { Send, Menu, Paperclip } from "lucide-react";
+import { Send, Menu, Paperclip, MessageCircle, FileText, Coins, Gift, Image, Settings, AlertCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useRouter } from "next/router";
+import { cn } from "@/lib/utils";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Textarea } from "@/components/ui/textarea";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface Message {
   id: string;
@@ -235,143 +240,188 @@ export default function Home() {
     <>
       <SEO title="Chat - Japan2026 Trip" />
       <Layout>
-        <div className="flex flex-col h-screen max-w-[430px] mx-auto">
-          {/* Header */}
-          <div className="glass-card p-4 m-4 rounded-2xl flex items-center justify-between">
-            <div>
-              <h2 className="text-xl font-serif font-bold text-primary">Main Chat 💬</h2>
-              <p className="text-sm text-muted-foreground flex items-center gap-2">
-                with Claudia Yang
-                {apiConnected ? (
-                  <span className="flex items-center gap-1 text-xs text-green-400">
-                    <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-                    {aiProvider === 'claude' ? 'Claude' : 'OpenAI'} Connected
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-1 text-xs text-amber-400">
-                    <span className="w-2 h-2 rounded-full bg-amber-400" />
-                    API Not Connected
-                  </span>
-                )}
-              </p>
-            </div>
-            <Button variant="ghost" size="icon">
-              <Menu className="h-5 w-5" />
-            </Button>
-          </div>
-
-          {/* Messages */}
-          <div className="flex-1 overflow-y-auto px-4 space-y-4 pb-4">
-            {messages.map((msg) => (
-              <div
-                key={msg.id}
-                className={`flex ${msg.isAI ? 'justify-start' : 'justify-end'} animate-slide-in`}
-              >
+        {/* Chat Container - Full width with proper padding */}
+        <div className="flex-1 flex flex-col bg-background/50 backdrop-blur-sm">
+          {/* Messages Area - No max-width constraint, uses full available width */}
+          <ScrollArea className="flex-1 px-4 md:px-6 lg:px-8">
+            <div className="py-6 space-y-6">
+              {messages.map((msg) => (
                 <div
-                  className={`glass-card max-w-[85%] p-4 rounded-2xl ${
-                    msg.isAI ? 'bg-muted/30 border-secondary/20' : 'bg-primary/20 border-primary/20'
-                  }`}
+                  key={msg.id}
+                  className={cn(
+                    "flex gap-3 animate-in fade-in-50 slide-in-from-bottom-3",
+                    msg.isAI ? "justify-start" : "justify-end"
+                  )}
                 >
-                  <div className="flex items-center gap-2 mb-2">
-                    {msg.isAI && (
-                      <div className="w-6 h-6 rounded-full bg-secondary flex items-center justify-center text-xs">
-                        🤖
-                      </div>
+                  {msg.isAI && (
+                    <Avatar className="h-8 w-8 border-2 border-primary/20 shrink-0">
+                      <AvatarImage src="/20240410_120945_1_.jpg" />
+                      <AvatarFallback className="bg-primary/10 text-primary">
+                        CY
+                      </AvatarFallback>
+                    </Avatar>
+                  )}
+                  <div
+                    className={cn(
+                      "rounded-2xl px-4 py-3 max-w-[85%] backdrop-blur-md",
+                      msg.isAI
+                        ? "bg-card/80 border border-border/50 text-foreground shadow-lg"
+                        : "bg-primary/90 text-primary-foreground shadow-lg"
                     )}
-                    <p className="text-xs text-muted-foreground font-medium">
-                      {msg.sender}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {msg.timestamp.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
+                  >
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xs font-medium opacity-70">
+                        {msg.sender}
+                      </span>
+                      <span className="text-xs opacity-50">
+                        {msg.timestamp.toLocaleTimeString("id-ID", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </span>
+                    </div>
+                    <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                      {msg.text}
                     </p>
                   </div>
-                  <p className="text-foreground whitespace-pre-line">{msg.text}</p>
+                  {msg.isAI && (
+                    <Avatar className="h-8 w-8 border-2 border-primary/20 shrink-0">
+                      <AvatarFallback className="bg-primary/20 text-primary font-semibold">
+                        {currentUser?.charAt(0) || "U"}
+                      </AvatarFallback>
+                    </Avatar>
+                  )}
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          </ScrollArea>
 
-          {/* Input */}
-          <div className="glass-card p-4 m-4 rounded-2xl">
-            <div className="flex gap-2">
+          {/* Input Area - Full width with proper padding */}
+          <div className="border-t border-border/50 bg-background/80 backdrop-blur-md px-4 md:px-6 lg:px-8 py-4">
+            <div className="flex gap-3 items-end">
               <Button
-                variant="ghost"
                 size="icon"
-                className="text-muted-foreground hover:text-primary"
+                variant="ghost"
+                className="shrink-0 h-10 w-10 rounded-full hover:bg-primary/10 hover:text-primary"
               >
                 <Paperclip className="h-5 w-5" />
               </Button>
-              <Input
+              <Textarea
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSendMessage();
+                  }
+                }}
                 placeholder="Tanya Claudia..."
-                className="flex-1 bg-background/50 border-muted"
+                className="min-h-[44px] max-h-32 resize-none bg-muted/50 border-border/50 backdrop-blur-sm focus:bg-muted/80 transition-colors"
+                disabled={false}
               />
               <Button
                 onClick={handleSendMessage}
+                disabled={false || !inputMessage.trim()}
                 size="icon"
-                className="ripple-effect bg-primary hover:bg-primary/90 text-primary-foreground"
+                className="shrink-0 h-10 w-10 rounded-full bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20"
               >
                 <Send className="h-5 w-5" />
               </Button>
             </div>
           </div>
-
-          {/* Bottom Nav */}
-          <div className="glass-card mx-4 mb-4 p-2 rounded-2xl flex justify-around">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className={`flex-1 ${activeTab === 'chat' ? 'text-primary' : ''}`}
-              onClick={() => setActiveTab('chat')}
-            >
-              💬 <span className="ml-1 hidden sm:inline">Chat</span>
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className={`flex-1 ${activeTab === 'docs' ? 'text-primary' : ''}`}
-              onClick={() => setActiveTab('docs')}
-            >
-              📄 <span className="ml-1 hidden sm:inline">Docs</span>
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className={`flex-1 ${activeTab === 'expense' ? 'text-primary' : ''}`}
-              onClick={() => setActiveTab('expense')}
-            >
-              💰 <span className="ml-1 hidden sm:inline">Expense</span>
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className={`flex-1 ${activeTab === 'souvenir' ? 'text-primary' : ''}`}
-              onClick={() => setActiveTab('souvenir')}
-            >
-              🎁 <span className="ml-1 hidden sm:inline">Souvenir</span>
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className={`flex-1 ${activeTab === 'gallery' ? 'text-primary' : ''}`}
-              onClick={() => setActiveTab('gallery')}
-            >
-              📸 <span className="ml-1 hidden sm:inline">Gallery</span>
-            </Button>
-            {currentUser === 'Janto' && (
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="flex-1"
-                onClick={() => router.push('/admin')}
-              >
-                ⚙️ <span className="ml-1 hidden sm:inline">Admin</span>
-              </Button>
-            )}
-          </div>
         </div>
+
+        {/* Bottom Navigation - Full width, glass effect */}
+        <nav className="sticky bottom-0 left-0 right-0 z-50 border-t border-border/50 bg-background/80 backdrop-blur-xl">
+          <div className="px-4 py-3">
+            <div className="flex items-center justify-around gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setActiveTab("chat")}
+                className={cn(
+                  "flex-1 gap-2 transition-colors",
+                  activeTab === "chat"
+                    ? "bg-primary/10 text-primary hover:bg-primary/20"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <MessageCircle className="h-4 w-4" />
+                <span className="text-xs font-medium">Chat</span>
+              </Button>
+
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setActiveTab("docs")}
+                className={cn(
+                  "flex-1 gap-2 transition-colors",
+                  activeTab === "docs"
+                    ? "bg-primary/10 text-primary hover:bg-primary/20"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <FileText className="h-4 w-4" />
+                <span className="text-xs font-medium">Docs</span>
+              </Button>
+
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setActiveTab("expense")}
+                className={cn(
+                  "flex-1 gap-2 transition-colors",
+                  activeTab === "expense"
+                    ? "bg-primary/10 text-primary hover:bg-primary/20"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <Coins className="h-4 w-4" />
+                <span className="text-xs font-medium">Expense</span>
+              </Button>
+
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setActiveTab("souvenir")}
+                className={cn(
+                  "flex-1 gap-2 transition-colors",
+                  activeTab === "souvenir"
+                    ? "bg-primary/10 text-primary hover:bg-primary/20"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <Gift className="h-4 w-4" />
+                <span className="text-xs font-medium">Souvenir</span>
+              </Button>
+
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setActiveTab("gallery")}
+                className={cn(
+                  "flex-1 gap-2 transition-colors",
+                  activeTab === "gallery"
+                    ? "bg-primary/10 text-primary hover:bg-primary/20"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <Image className="h-4 w-4" />
+                <span className="text-xs font-medium">Gallery</span>
+              </Button>
+
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => router.push("/admin")}
+                className="flex-1 gap-2 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <Settings className="h-4 w-4" />
+                <span className="text-xs font-medium">Admin</span>
+              </Button>
+            </div>
+          </div>
+        </nav>
       </Layout>
     </>
   );
