@@ -248,25 +248,42 @@ export default function AdminPage() {
 
   const handleSaveApiKeys = async () => {
     try {
-      // CRITICAL FIX: Strip display text from model name before saving
-      // Model dropdown shows labels like "Claude 3 Haiku (Fast & Affordable)"
-      // but we must ONLY save the actual model ID like "claude-3-haiku-20240307"
-      // Strip everything after the first space or opening parenthesis
-      const cleanModel = aiModel.split(' ')[0].split('(')[0].trim();
+      // Validate API key formats BEFORE saving
+      const trimmedClaudeKey = claudeApiKey.trim();
+      const trimmedOpenaiKey = openaiApiKey.trim();
+      
+      // Validate Claude API key format if provided
+      if (trimmedClaudeKey && !trimmedClaudeKey.startsWith('sk-ant-api')) {
+        alert('❌ Format Claude API Key tidak valid!\n\nClaude API key harus dimulai dengan "sk-ant-api"\n\nContoh: sk-ant-api03-...');
+        return;
+      }
+      
+      // Validate OpenAI API key format if provided
+      if (trimmedOpenaiKey && !trimmedOpenaiKey.startsWith('sk-')) {
+        alert('❌ Format OpenAI API Key tidak valid!\n\nOpenAI API key harus dimulai dengan "sk-"\n\nContoh: sk-proj-...');
+        return;
+      }
+      
+      // Check that at least one provider has a valid key
+      const activeProviderKey = aiProvider === 'claude' ? trimmedClaudeKey : trimmedOpenaiKey;
+      if (!activeProviderKey || activeProviderKey.length === 0) {
+        alert(`❌ ${aiProvider === 'claude' ? 'Claude' : 'OpenAI'} API key kosong!\n\nProvider yang aktif: ${aiProvider}\n\nSilakan masukkan API key yang valid.`);
+        return;
+      }
       
       // Save to localStorage without any auth changes
       const settings = {
         ai_provider: aiProvider,
-        claude_api_key: claudeApiKey,
-        openai_api_key: openaiApiKey,
-        ai_model: cleanModel, // Save only clean model ID
+        claude_api_key: trimmedClaudeKey,
+        openai_api_key: trimmedOpenaiKey,
+        ai_model: aiModel,
         google_drive_key: googleDriveKey,
       };
       
       localStorage.setItem('admin_settings', JSON.stringify(settings));
       
-      // Show success without any navigation or state changes
-      alert("✅ API Configuration saved successfully!\n\nSettings tersimpan dan akan langsung aktif di chat.");
+      // Show success with validation confirmation
+      alert(`✅ API Configuration saved successfully!\n\nValidation passed:\n• ${aiProvider === 'claude' ? 'Claude' : 'OpenAI'} API key format: Valid\n• Provider: ${aiProvider}\n• Model: ${aiModel}\n\nSettings tersimpan dan akan langsung aktif di chat.`);
       
       // DO NOT call router.push or any auth changes here!
     } catch (error) {
