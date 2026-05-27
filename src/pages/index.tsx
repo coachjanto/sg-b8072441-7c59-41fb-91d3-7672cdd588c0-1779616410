@@ -240,11 +240,11 @@ export default function Home() {
     <>
       <SEO title="Chat - Japan2026 Trip" />
       <Layout>
-        {/* Chat Container - Full width with proper padding */}
-        <div className="flex-1 flex flex-col bg-background/50 backdrop-blur-sm">
-          {/* Messages Area - No max-width constraint, uses full available width */}
-          <ScrollArea className="flex-1 px-4 md:px-6 lg:px-8">
-            <div className="py-6 space-y-6">
+        {/* Chat Container - Full width flex container */}
+        <div className="flex-1 flex flex-col bg-background/50 backdrop-blur-sm w-full">
+          {/* Messages Area - Full width but max-w inside */}
+          <ScrollArea className="flex-1 w-full">
+            <div className="py-6 space-y-6 max-w-4xl mx-auto px-4 md:px-6 lg:px-8">
               {messages.map((msg) => (
                 <div
                   key={msg.id}
@@ -280,7 +280,7 @@ export default function Home() {
                         })}
                       </span>
                     </div>
-                    <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                    <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
                       {msg.text}
                     </p>
                   </div>
@@ -296,9 +296,9 @@ export default function Home() {
             </div>
           </ScrollArea>
 
-          {/* Input Area - Full width with proper padding */}
-          <div className="border-t border-border/50 bg-background/80 backdrop-blur-md px-4 md:px-6 lg:px-8 py-4">
-            <div className="flex gap-3 items-end">
+          {/* Input Area */}
+          <div className="border-t border-border/50 bg-background/80 backdrop-blur-md px-4 md:px-6 py-4 w-full shrink-0">
+            <div className="flex gap-3 items-end max-w-4xl mx-auto">
               <Button
                 size="icon"
                 variant="ghost"
@@ -331,23 +331,23 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Bottom Navigation - Full width, glass effect */}
-        <nav className="sticky bottom-0 left-0 right-0 z-50 border-t border-border/50 bg-background/80 backdrop-blur-xl">
-          <div className="px-4 py-3">
-            <div className="flex items-center justify-around gap-2">
+        {/* Bottom Navigation - Full width with contained max-w for items */}
+        <nav className="sticky bottom-0 left-0 right-0 z-50 border-t border-border/50 bg-background/95 backdrop-blur-xl w-full shrink-0 pb-safe">
+          <div className="px-2 sm:px-4 py-3 max-w-4xl mx-auto">
+            <div className="flex items-center justify-around gap-1 sm:gap-2">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setActiveTab("chat")}
                 className={cn(
-                  "flex-1 gap-2 transition-colors",
+                  "flex-1 gap-1 sm:gap-2 transition-colors flex-col sm:flex-row h-14 sm:h-9",
                   activeTab === "chat"
                     ? "bg-primary/10 text-primary hover:bg-primary/20"
                     : "text-muted-foreground hover:text-foreground"
                 )}
               >
-                <MessageCircle className="h-4 w-4" />
-                <span className="text-xs font-medium">Chat</span>
+                <MessageCircle className="h-5 w-5 sm:h-4 sm:w-4" />
+                <span className="text-[10px] sm:text-xs font-medium">Chat</span>
               </Button>
 
               <Button
@@ -355,14 +355,14 @@ export default function Home() {
                 size="sm"
                 onClick={() => setActiveTab("docs")}
                 className={cn(
-                  "flex-1 gap-2 transition-colors",
+                  "flex-1 gap-1 sm:gap-2 transition-colors flex-col sm:flex-row h-14 sm:h-9",
                   activeTab === "docs"
                     ? "bg-primary/10 text-primary hover:bg-primary/20"
                     : "text-muted-foreground hover:text-foreground"
                 )}
               >
-                <FileText className="h-4 w-4" />
-                <span className="text-xs font-medium">Docs</span>
+                <FileText className="h-5 w-5 sm:h-4 sm:w-4" />
+                <span className="text-[10px] sm:text-xs font-medium">Docs</span>
               </Button>
 
               <Button
@@ -370,14 +370,14 @@ export default function Home() {
                 size="sm"
                 onClick={() => setActiveTab("expense")}
                 className={cn(
-                  "flex-1 gap-2 transition-colors",
+                  "flex-1 gap-1 sm:gap-2 transition-colors flex-col sm:flex-row h-14 sm:h-9",
                   activeTab === "expense"
                     ? "bg-primary/10 text-primary hover:bg-primary/20"
                     : "text-muted-foreground hover:text-foreground"
                 )}
               >
-                <Coins className="h-4 w-4" />
-                <span className="text-xs font-medium">Expense</span>
+                <Coins className="h-5 w-5 sm:h-4 sm:w-4" />
+                <span className="text-[10px] sm:text-xs font-medium">Expense</span>
               </Button>
 
               <Button
@@ -385,14 +385,14 @@ export default function Home() {
                 size="sm"
                 onClick={() => setActiveTab("souvenir")}
                 className={cn(
-                  "flex-1 gap-2 transition-colors",
+                  "flex-1 gap-1 sm:gap-2 transition-colors flex-col sm:flex-row h-14 sm:h-9",
                   activeTab === "souvenir"
                     ? "bg-primary/10 text-primary hover:bg-primary/20"
                     : "text-muted-foreground hover:text-foreground"
                 )}
               >
-                <Gift className="h-4 w-4" />
-                <span className="text-xs font-medium">Souvenir</span>
+                <Gift className="h-5 w-5 sm:h-4 sm:w-4" />
+                <span className="text-[10px] sm:text-xs font-medium">Souvenir</span>
               </Button>
 
               <Button
@@ -400,24 +400,24 @@ export default function Home() {
                 size="sm"
                 onClick={() => setActiveTab("gallery")}
                 className={cn(
-                  "flex-1 gap-2 transition-colors",
+                  "flex-1 gap-1 sm:gap-2 transition-colors flex-col sm:flex-row h-14 sm:h-9",
                   activeTab === "gallery"
                     ? "bg-primary/10 text-primary hover:bg-primary/20"
                     : "text-muted-foreground hover:text-foreground"
                 )}
               >
-                <Image className="h-4 w-4" />
-                <span className="text-xs font-medium">Gallery</span>
+                <Image className="h-5 w-5 sm:h-4 sm:w-4" />
+                <span className="text-[10px] sm:text-xs font-medium">Gallery</span>
               </Button>
 
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => router.push("/admin")}
-                className="flex-1 gap-2 text-muted-foreground hover:text-foreground transition-colors"
+                className="flex-1 gap-1 sm:gap-2 transition-colors flex-col sm:flex-row h-14 sm:h-9 text-muted-foreground hover:text-foreground"
               >
-                <Settings className="h-4 w-4" />
-                <span className="text-xs font-medium">Admin</span>
+                <Settings className="h-5 w-5 sm:h-4 sm:w-4" />
+                <span className="text-[10px] sm:text-xs font-medium">Admin</span>
               </Button>
             </div>
           </div>

@@ -84,7 +84,7 @@ export default function AdminPage() {
   const [confirmPin, setConfirmPin] = useState("");
   const [totalBudget, setTotalBudget] = useState("");
   const [perPaxBilling, setPerPaxBilling] = useState(false);
-  const [backgroundImage, setBackgroundImage] = useState<File | null>(null);
+  const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
   const [backgroundPreview, setBackgroundPreview] = useState("");
   
   const [members, setMembers] = useState<Member[]>([
@@ -164,6 +164,12 @@ export default function AdminPage() {
         createdAt: new Date(entry.createdAt)
       })));
     }
+
+    const savedBg = localStorage.getItem('app_background');
+    if (savedBg) {
+      setBackgroundPreview(savedBg);
+      setBackgroundImage(savedBg);
+    }
   }, []);
 
   const knowledgeCategories = [
@@ -182,12 +188,59 @@ export default function AdminPage() {
   const handleBackgroundUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setBackgroundImage(file);
+      // Quick preview
+      const previewUrl = URL.createObjectURL(file);
+      setBackgroundPreview(previewUrl);
+
+      // Compress and save to base64
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setBackgroundPreview(reader.result as string);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 1280;
+          const MAX_HEIGHT = 720;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height *= MAX_WIDTH / width;
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width *= MAX_HEIGHT / height;
+              height = MAX_HEIGHT;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+          
+          // Compress to JPEG with 0.6 quality to save space
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
+          setBackgroundImage(dataUrl);
+        };
+        img.src = event.target?.result as string;
       };
       reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSaveAppearance = () => {
+    try {
+      if (backgroundImage) {
+        localStorage.setItem('app_background', backgroundImage);
+        alert("✅ Apps background saved successfully!");
+      } else {
+        alert("❌ No background selected");
+      }
+    } catch (e) {
+      console.error(e);
+      alert("❌ Failed to save background. Image might be too large.");
     }
   };
 
@@ -1399,7 +1452,7 @@ export default function AdminPage() {
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div className="space-y-2">
-                    <Label htmlFor="bg-upload">Background Image</Label>
+                    <Label htmlFor="bg-upload">Apps background</Label>
                     <div className="flex gap-2">
                       <Input
                         id="bg-upload"
@@ -1408,25 +1461,26 @@ export default function AdminPage() {
                         onChange={handleBackgroundUpload}
                         className="bg-background/50"
                       />
-                      <Button variant="outline" size="icon" className="glass-card-hover">
+                      <Button variant="outline" size="icon" className="glass-card-hover shrink-0">
                         <Upload className="h-4 w-4" />
                       </Button>
                     </div>
                     {backgroundPreview && (
-                      <div className="mt-4 rounded-xl overflow-hidden border border-border/50">
+                      <div className="mt-4 rounded-xl overflow-hidden border border-border/50 relative">
                         <img 
                           src={backgroundPreview} 
                           alt="Background preview" 
                           className="w-full h-48 object-cover"
                         />
+                        <div className="absolute inset-0 bg-background/20" />
                       </div>
                     )}
                     <p className="text-xs text-muted-foreground">
-                      Recommended: 1920x1080px or larger. Will display as overlay on gradient mesh.
+                      Recommended: Landscape image. Will be compressed automatically and displayed as overlay.
                     </p>
                   </div>
 
-                  <Button className="w-full ripple-effect">
+                  <Button onClick={handleSaveAppearance} className="w-full ripple-effect">
                     <Save className="h-4 w-4 mr-2" />
                     Save Appearance
                   </Button>
