@@ -147,6 +147,16 @@ export default function Home() {
         : settings.claude_api_key;
       const model = settings.ai_model || 'claude-3-5-sonnet-20240620';
       
+      // CRITICAL FIX: Strip display text from model name
+      // Model names can have labels like "Claude 3 Haiku (Fast & Affordable)"
+      // We need to extract ONLY the actual model ID
+      const rawModel = settings.ai_model || 'claude-3-5-sonnet-20240620';
+      
+      // Strip everything after and including the first space or parenthesis
+      // "Claude 3 Haiku (Fast & Affordable)" → "claude-3-haiku-20240307"
+      // But our values should already be clean, so this is just a safety check
+      const cleanModel = rawModel.split(' ')[0].split('(')[0].trim();
+      
       // Get knowledge base for context
       const savedKnowledge = localStorage.getItem('knowledge_base');
       let knowledgeContext = '';
@@ -173,7 +183,7 @@ export default function Home() {
           message: currentInput,
           provider: settings.ai_provider || 'claude',
           apiKey: apiKey,
-          model: model,
+          model: cleanModel, // Use cleaned model ID
           currentUser: currentUser,
           knowledgeContext: knowledgeContext,
           conversationHistory: conversationHistory
