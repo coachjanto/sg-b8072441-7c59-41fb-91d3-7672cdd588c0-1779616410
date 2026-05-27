@@ -12,15 +12,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ error: 'Missing required fields: message, provider, apiKey' });
   }
 
-  // Trim and sanitize API key
-  const sanitizedApiKey = apiKey.trim();
+  // Aggressive sanitization - remove ALL whitespace including newlines, tabs, spaces
+  const sanitizedApiKey = apiKey.replace(/\s+/g, '').trim();
+  
+  // Validate API key format
+  if (provider === 'claude') {
+    if (!sanitizedApiKey.startsWith('sk-ant-api')) {
+      return res.status(400).json({ 
+        error: 'Invalid Claude API key format. Key must start with "sk-ant-api"' 
+      });
+    }
+  } else if (provider === 'openai') {
+    if (!sanitizedApiKey.startsWith('sk-')) {
+      return res.status(400).json({ 
+        error: 'Invalid OpenAI API key format. Key must start with "sk-"' 
+      });
+    }
+  }
   
   console.log('API Request:', {
     provider,
     model,
     currentUser,
     apiKeyLength: sanitizedApiKey.length,
-    apiKeyPrefix: sanitizedApiKey.substring(0, 10) + '...',
+    apiKeyPrefix: sanitizedApiKey.substring(0, 15) + '...',
   });
 
   try {
@@ -69,9 +84,22 @@ Jawab dengan spesifik, personal, dan action-oriented.`,
         const errorData = await claudeResponse.json();
         console.error('Claude API Error:', {
           status: claudeResponse.status,
+          statusText: claudeResponse.statusText,
           error: errorData
         });
-        throw new Error(errorData.error?.message || `Claude API error: ${claudeResponse.status} - ${JSON.stringify(errorData)}`);
+        
+        // Provide helpful error messages
+        let errorMessage = errorData.error?.message || `Claude API error: ${claudeResponse.status}`;
+        
+        if (claudeResponse.status === 401) {
+          errorMessage = 'API key tidak valid atau expired. Silakan cek ulang API key di Admin Settings.';
+        } else if (claudeResponse.status === 429) {
+          errorMessage = 'Rate limit terlampaui atau quota habis. Tunggu beberapa saat atau cek quota API key Anda.';
+        } else if (claudeResponse.status === 400) {
+          errorMessage = `Format request tidak valid: ${errorData.error?.message || 'Unknown error'}`;
+        }
+        
+        throw new Error(errorMessage);
       }
 
       const data = await claudeResponse.json();
@@ -123,9 +151,20 @@ Jawab dengan spesifik, personal, dan action-oriented.`
         const errorData = await openaiResponse.json();
         console.error('OpenAI API Error:', {
           status: openaiResponse.status,
+          statusText: openaiResponse.statusText,
           error: errorData
         });
-        throw new Error(errorData.error?.message || `OpenAI API error: ${openaiResponse.status} - ${JSON.stringify(errorData)}`);
+        
+        // Provide helpful error messages
+        let errorMessage = errorData.error?.message || `OpenAI API error: ${openaiResponse.status}`;
+        
+        if (openaiResponse.status === 401) {
+          errorMessage = 'API key tidak valid atau expired. Silakan cek ulang API key di Admin Settings.';
+        } else if (openaiResponse.status === 429) {
+          errorMessage = 'Rate limit terlampaui atau quota habis. Tunggu beberapa saat atau cek quota API key Anda.';
+        }
+        
+        throw new Error(errorMessage);
       }
 
       const data = await openaiResponse.json();
