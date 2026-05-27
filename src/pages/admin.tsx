@@ -233,12 +233,18 @@ export default function AdminPage() {
 
   const handleSaveApiKeys = async () => {
     try {
+      // CRITICAL FIX: Strip display text from model name before saving
+      // Model dropdown shows labels like "Claude 3 Haiku (Fast & Affordable)"
+      // but we must ONLY save the actual model ID like "claude-3-haiku-20240307"
+      // Strip everything after the first space or opening parenthesis
+      const cleanModel = aiModel.split(' ')[0].split('(')[0].trim();
+      
       // Save to localStorage without any auth changes
       const settings = {
         ai_provider: aiProvider,
         claude_api_key: claudeApiKey,
         openai_api_key: openaiApiKey,
-        ai_model: aiModel,
+        ai_model: cleanModel, // Save only clean model ID
         google_drive_key: googleDriveKey,
       };
       
