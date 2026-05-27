@@ -130,7 +130,22 @@ export default function AdminPage() {
       setAiProvider(settings.ai_provider || 'claude');
       setClaudeApiKey(settings.claude_api_key || '');
       setOpenaiApiKey(settings.openai_api_key || '');
-      setAiModel(settings.ai_model || 'claude-3-5-sonnet-20240620');
+      
+      // CRITICAL FIX: Sanitize model on LOAD to clean legacy data
+      // Old localStorage might have "claude-3-haiku-20240307 (Fast & Affordable)"
+      const rawModel = settings.ai_model || 'claude-3-5-sonnet-20240620';
+      
+      // Remove everything after opening parenthesis
+      let cleanModel = rawModel.split('(')[0].trim();
+      
+      // If there are spaces, extract the model ID segment
+      const segments = cleanModel.split(' ');
+      if (segments.length > 1) {
+        const modelIdSegment = segments.find((seg: string) => seg.includes('-') && /\d/.test(seg));
+        cleanModel = modelIdSegment || segments[0];
+      }
+      
+      setAiModel(cleanModel.trim());
       setGoogleDriveKey(settings.google_drive_key || '');
     }
 
